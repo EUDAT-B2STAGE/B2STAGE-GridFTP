@@ -33,7 +33,6 @@ Prerequisite:
 
 - globus-gridftp-server-progs
 - libglobus-common-dev 
-- grid-packaging-tools
 - libglobus-gridftp-server-dev
 (see http://www.ige-project.eu/downloads/software/releases/downloads)
 
@@ -68,7 +67,7 @@ server package without recompiling it.
 
    If you have installed the Globus GridFTP Server from packages:
 
-   # make install
+   $ sudo make install
   
 
 
