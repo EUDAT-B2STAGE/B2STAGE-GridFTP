@@ -400,7 +400,7 @@ iRODS_l_stat_dir(
     snprintf (condStr, MAX_NAME_LEN, "='%s'", start_dir);
     addInxVal (&genQueryInp.sqlCondInp, COL_COLL_NAME, condStr);
 
-    snprintf (condStr, MAX_NAME_LEN, "='%s'", 0);
+    snprintf (condStr, MAX_NAME_LEN, "='%i'",0);
     addInxVal (&genQueryInp.sqlCondInp, COL_DATA_REPL_NUM, condStr);
 
     addInxIval (&genQueryInp.selectInp, COL_COLL_NAME, 1);
