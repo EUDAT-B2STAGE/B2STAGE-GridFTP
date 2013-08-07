@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2013 CINECA (www.hpc.cineca.it)
+ *
+ * Copyright (c) 1999-2006 University of Chicago
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * Globus DSI to manage data on iRODS.
+ *
+ * Author: Roberto Mucci - SCAI - CINECA
+ * Email:  hpc-service@cineca.it
+ *
+ */
+
+*********************************************************************************
+* Installation
+*********************************************************************************
+The installation is quite simply: it is possible to use the official gridftp 
+server package without recompiling it.
+The code is actually hosted in the CINECA SVN. A typical installation proceeds 
+as follow: 
+% Install globus-gridftp-server-progs libglobus-common-dev grid-packaging-tools 
+libglobus-gridftp-server-dev[2]
+$ mkdir $WRKDIR
+$ cd $WRKDIR
+$ export GLOBUS_LOCATION=/usr
+$ svn co https://hpc-forge.cineca.it/svn/iRODS-Tools/DSI
+% Modify Makefile and makefile_header according to your installation.
+% In particular:
+% in Makefile, take care of the irods paths and of the installation path (/usr/lib 
+or /usr/lib64 or whatever)
+% in makefile_header, if experiencing problem with -fPIC when compiling, add it to 
+GLOBUS_CFLAGS and, possibly, to the iRODS Makefile and recompile.
+$ make
+% If everything is OK ;-), as root:
+# make install
+
+
+*********************************************************************************
+* configure and run
+*********************************************************************************
+In order to run the server as an unprivileged user (root privileges are not 
+required):
+1) modify /etc/gridftp.conf adding:
+$irodsEnvFile "/path/to/.irodsEnv"
+load_dsi_module iRODS
+auth_level 4
+
+where /path/to/.irodsEnv contains at least the lines
+irodsHost 'your.irods.server'
+irodsPort 'port'
+irodsAuthScheme 'GSI'
+
+2) In /etc/grid-security/grid-mapfile associate the DNs to the irods usernames, 
+for example:
+$ grep gmariani /etc/grid-security/grid-mapfile
+"/C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Giacomo Mariani" gmariani
+
+3) In the icat associate the DN to the irods username as well as to the gridftp 
+server DN, for example:
+$ iadmin lua | grep gmariani
+gmariani /C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Giacomo Mariani
+gmariani /C=IT/O=INFN/OU=Host/L=CINECA-SAP/CN=fec03.cineca.it
+
+4) In a few days, it will be possible, if you have more than ore irods resource 
+configured, to specify a policy for them in a file called irodsresourcemap.conf. 
+We are still working on it. 
+
+5) Modify the globus-gridftp-server script in /etc/init.d in order to create log 
+and pid files where the user running the server has the required ownership and run 
+the server with:
+$ /etc/init.d/globus-gridftp-server start
+% in alternative you can run the server with: 
+$ /usr/sbin/globus-gridftp-server -S -d ALL -c $WRKDIR/gridftp.conf
+
+*********************************************************************************
+* logrotate
+*********************************************************************************
+If you use -d ALL as in the example, please, be aware that the log files could 
+grow quite a lot so the use of logrotate is suggested. 
