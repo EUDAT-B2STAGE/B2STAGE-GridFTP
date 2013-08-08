@@ -32,8 +32,8 @@ Prerequisite:
 - CMake 2.8 or higher
 
 - globus-gridftp-server-progs
-- libglobus-common-dev 
-- libglobus-gridftp-server-dev
+- libglobus-common-dev (.deb) or globus-common-devel (.rpm)
+- libglobus-gridftp-server-dev (.deb) or globus-gridftp-server-devel (.rpm)
 (see http://www.ige-project.eu/downloads/software/releases/downloads)
 
 
@@ -48,9 +48,16 @@ server package without recompiling it.
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
    - IRODS_PATH --> path to the iRODS installation
-   - FLAVOR --> flavors of the packages which are already installed (if needed)
+   - FLAVOR --> flavors of the packages which are already installed[a] 
    - RESOURCE_MAP_PATH --> path to the folder containing the 
      "irodsResourceMap.conf" file (to map irods paths and irods resources) 
+
+[a] This depends on your globus installation. Possible flavors are:
+   FLAVOR=gcc64dbg
+   or
+   FLAVOR=gcc64dbgpthr
+   You can access this information with gpt-query. 
+   Anyway, if the flavor is not correct, the error running the server should help.
 
 2) Run cmake:
    
@@ -59,6 +66,23 @@ server package without recompiling it.
 3) Compile the module:
 
    $ make
+
+   An error like:
+   ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
+   relocation R_X86_64_32 against `.bss' can not be used when making a
+   shared object; recompile with -fPIC
+
+   usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
+   the mentioned flag, -fPIC:
+   - in ${IRODS_PATH} modify
+    * clients/icommands/Makefile
+    * lib/Makefile
+    * server/Makefile
+    adding the following line:
+    CFLAGS +=  -fPIC
+   - recompile iRODS
+
+   This should fix the problem. 
 
 4) Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
