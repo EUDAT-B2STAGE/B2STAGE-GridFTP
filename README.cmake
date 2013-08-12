@@ -48,9 +48,9 @@ server package without recompiling it.
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
    - IRODS_PATH --> path to the iRODS installation
-   - FLAVOR --> flavors of the packages which are already installed[a] 
+   - FLAVOR --> flavors of the Globus packages which are already installed[a] 
    - RESOURCE_MAP_PATH --> path to the folder containing the 
-     "irodsResourceMap.conf" file (to map irods paths and irods resources) 
+     "irodsResourceMap.conf" file (see step 4 of the section "Configure and run") 
 
 [a] This depends on your globus installation. Possible flavors are:
    FLAVOR=gcc64dbg
