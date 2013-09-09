@@ -341,7 +341,7 @@ iRODS_l_stat1(
         else if(status == -808000)
         {
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: object or collection called: %s not found\n", start_dir);
-            status = -1;
+            //status = -808000;
         }
     }
     free(data_dir);
@@ -782,11 +782,17 @@ globus_l_gfs_iRODS_stat(
     iRODS_l_reduce_path(stat_info->pathname);
 
     status = iRODS_l_stat1(iRODS_handle->conn, &stat_buf, stat_info->pathname);
-    if(status < 0)
+
+    if (status == -808000)
     {
-        result = globus_l_gfs_iRODS_make_error("iRODS: iRODS_l_stat1 failed.", status);
+        result = globus_l_gfs_iRODS_make_error("No such file or directory.", status); //UberFTP NEEDS "No such file or directory"
         goto error;
     }
+    else if(status < 0)
+    {
+        result = globus_l_gfs_iRODS_make_error("iRODS_l_stat1 failed.", status);
+        goto error;
+    } 
     /* iRODSFileStat */
     if(!S_ISDIR(stat_buf.mode) || stat_info->file_only)
     {
@@ -803,7 +809,7 @@ globus_l_gfs_iRODS_stat(
 
         if(rc != 0)
         {
-            result = globus_l_gfs_iRODS_make_error("iRODS: iRODS_l_stat_dir failed.", rc);
+            result = globus_l_gfs_iRODS_make_error("iRODS_l_stat_dir failed.", rc);
             goto error;
         }
     }
@@ -819,7 +825,7 @@ globus_l_gfs_iRODS_stat(
     return;
 
 error:
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "globus_l_gfs_iRODS_stat(): globus_l_gfs_iRODS_stat Failed\n");
+    //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "globus_l_gfs_iRODS_stat(): globus_l_gfs_iRODS_stat Failed. result = %d.\n",result);
     globus_gridftp_server_finished_stat(op, result, NULL, 0);
 }
 
