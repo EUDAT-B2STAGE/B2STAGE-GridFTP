@@ -111,6 +111,7 @@ required):
 
        irodsHost 'your.irods.server'
        irodsPort 'port'
+       irodsZone 'zone'
        irodsAuthScheme 'GSI'
 
 
