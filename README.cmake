@@ -103,6 +103,7 @@ required):
 
 1) Modify '/etc/gridftp.conf' adding:
 
+      $GRIDMAP "/path/to/grid-mapfile"  
       $irodsEnvFile "/path/to/.irodsEnv" 
       load_dsi_module iRODS 
       auth_level 4
