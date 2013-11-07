@@ -40,7 +40,7 @@ Prerequisite:
 Installation
 --------------------------------
 
-The installation is quite simply: it is possible to use the official gridftp 
+The installation is quite simple: it is possible to use the official gridftp 
 server package without recompiling it.
 
 1) Set the following environment variables:
@@ -74,13 +74,9 @@ server package without recompiling it.
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
    the mentioned flag, -fPIC:
-   - in ${IRODS_PATH} modify
-    * clients/icommands/Makefile
-    * lib/Makefile
-    * server/Makefile
-    adding the following line:
-    CFLAGS +=  -fPIC
-   - recompile iRODS
+   - in ${IRODS_PATH}:
+     * export CFLAGS="$CFLAGS -fPIC"
+     * make clean && make
 
    This should fix the problem. 
 
