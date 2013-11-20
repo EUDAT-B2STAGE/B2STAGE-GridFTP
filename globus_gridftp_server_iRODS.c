@@ -873,8 +873,6 @@ globus_l_gfs_iRODS_command(
         goto alloc_error;
     }
 
-
-
     switch(cmd_info->command)
     {
         case GLOBUS_GFS_CMD_MKD:
@@ -915,6 +913,7 @@ globus_l_gfs_iRODS_command(
                bzero (&dataObjInp, sizeof (dataObjInp));
                rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
                addKeyVal (&dataObjInp.condInput, FORCE_CHKSUM_KW, "");
+               globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum: collection=%s\n", collection);
                status = rcDataObjChksum (iRODS_handle->conn, &dataObjInp, &outChksum);
            }
            break;
@@ -971,7 +970,7 @@ globus_l_gfs_iRODS_recv(
     void *                              user_arg)
 {
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
-    int                                       flags = O_WRONLY;
+    int                                 flags = O_WRONLY;
     globus_bool_t                       finish = GLOBUS_FALSE;
     char *                              collection = NULL;
     dataObjInp_t                        dataObjInp;
@@ -1013,31 +1012,24 @@ globus_l_gfs_iRODS_recv(
         result = GlobusGFSErrorGeneric("iRODS: strdup failed");
         goto alloc_error;
     }
-    
-    bzero (&dataObjInp, sizeof (dataObjInp));
-    rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-    iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
-    
-    if (iRODS_handle->fd < 0) {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Opening failed, try creating file :%s: for write\n", transfer_info->pathname);
 
-        //create the obj
-        bzero (&dataObjInp, sizeof (dataObjInp));
-        bzero (&dataObjWriteInp, sizeof (dataObjWriteInp));
-        rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-        dataObjInp.dataSize = 0;
-        if (iRODS_Resource_struct.resource != NULL)
-        {
-            addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_Resource_struct.resource);
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with resource: %s\n", iRODS_Resource_struct.resource);
-        }
-        iRODS_handle->fd = rcDataObjCreate (iRODS_handle->conn, &dataObjInp);
+    //create the obj
+    bzero (&dataObjInp, sizeof (dataObjInp));
+    bzero (&dataObjWriteInp, sizeof (dataObjWriteInp));
+    rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
+    dataObjInp.dataSize = 0;
+    addKeyVal (&dataObjInp.condInput, FORCE_FLAG_KW, "");
+    if (iRODS_Resource_struct.resource != NULL)
+    {
+        addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_Resource_struct.resource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with resource: %s\n", iRODS_Resource_struct.resource);
     }
+    iRODS_handle->fd = rcDataObjCreate (iRODS_handle->conn, &dataObjInp);
     if (iRODS_handle->fd < 0) {
         result = globus_l_gfs_iRODS_make_error("rcDataObjCreate failed", iRODS_handle->fd);
         goto error;
     }  
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: rcDataObjCreate succeeded. File created: %s.\n", collection);
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: Creating file succeeded. File created: %s.\n", collection);
     free(collection);
 
 
