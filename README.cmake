@@ -40,7 +40,7 @@ Prerequisite:
 Installation
 --------------------------------
 
-The installation is quite simply: it is possible to use the official gridftp 
+The installation is quite simple: it is possible to use the official gridftp 
 server package without recompiling it.
 
 1) Set the following environment variables:
@@ -48,11 +48,12 @@ server package without recompiling it.
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
    - IRODS_PATH --> path to the iRODS installation
-   - FLAVOR --> flavors of the packages which are already installed[a] 
-   - RESOURCE_MAP_PATH --> path to the folder containing the 
-     "irodsResourceMap.conf" file (to map irods paths and irods resources) 
+   - FLAVOR --> (optional) flavors of the Globus packages which are already installed[a] 
+   - RESOURCE_MAP_PATH --> (optional) path to the folder containing the 
+     "irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
 
-[a] This depends on your globus installation. Possible flavors are:
+[a] This depends on your globus installation. You will probably not need it. 
+   In case of error, possible flavors are:
    FLAVOR=gcc64dbg
    or
    FLAVOR=gcc64dbgpthr
@@ -74,13 +75,9 @@ server package without recompiling it.
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
    the mentioned flag, -fPIC:
-   - in ${IRODS_PATH} modify
-    * clients/icommands/Makefile
-    * lib/Makefile
-    * server/Makefile
-    adding the following line:
-    CFLAGS +=  -fPIC
-   - recompile iRODS
+   - in ${IRODS_PATH}:
+     * export CFLAGS="$CFLAGS -fPIC"
+     * make clean && make
 
    This should fix the problem. 
 
@@ -103,6 +100,7 @@ required):
 
 1) Modify '/etc/gridftp.conf' adding:
 
+      $GRIDMAP "/path/to/grid-mapfile"  
       $irodsEnvFile "/path/to/.irodsEnv" 
       load_dsi_module iRODS 
       auth_level 4
@@ -111,6 +109,7 @@ required):
 
        irodsHost 'your.irods.server'
        irodsPort 'port'
+       irodsZone 'zone'
        irodsAuthScheme 'GSI'
 
 
