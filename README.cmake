@@ -75,7 +75,7 @@ server package without recompiling it.
    shared object; recompile with -fPIC
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
-   the mentioned flag, -fPIC. This can be done in two alternative ways:
+   the mentioned flag, -fPIC. This can be done in three alternative ways:
 
    a) in ${IRODS_PATH} modify
       * clients/icommands/Makefile
@@ -85,12 +85,19 @@ server package without recompiling it.
       CFLAGS +=  -fPIC
       * make clean && make
 
-   b) in ${IRODS_PATH}:
-     * export CFLAGS="$CFLAGS -fPIC"
-     * make clean && make
+   b) in ${IRODS_PATH} modify   
+      * config/irods.config
+      * config/platform.mk
+      $CCFLAGS = '-fPIC'; 
+      * irodssetup
+
+   c) in ${IRODS_PATH}:
+      * export CFLAGS="$CFLAGS -fPIC"
+      * make clean && make
 
    The solution 'a' has the advantage of woorking even if you later recompile 
-   iRODS again. The solution 'b' is faster to be implemented. 
+   iRODS again. The solution 'b' is the same as solution 'a', but using irodssetup 
+   instead of make. The solution 'c' is faster to be implemented. 
 
 4) Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
