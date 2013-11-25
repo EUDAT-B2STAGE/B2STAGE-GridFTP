@@ -49,6 +49,7 @@ server package without recompiling it.
      the Globus GridFTP Server from packages, use '/usr')
    - IRODS_PATH --> path to the iRODS installation
    - FLAVOR --> (optional) flavors of the Globus packages which are already installed[a] 
+   - DEST_LIB_DIR --> (optional) path to the folder in which the library will be copied
    - RESOURCE_MAP_PATH --> (optional) path to the folder containing the 
      "irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
 
@@ -74,12 +75,22 @@ server package without recompiling it.
    shared object; recompile with -fPIC
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
-   the mentioned flag, -fPIC:
-   - in ${IRODS_PATH}:
+   the mentioned flag, -fPIC. This can be done in two alternative ways:
+
+   a) in ${IRODS_PATH} modify
+      * clients/icommands/Makefile
+      * lib/Makefile
+      * server/Makefile
+      adding the following line:
+      CFLAGS +=  -fPIC
+      * make clean && make
+
+   b) in ${IRODS_PATH}:
      * export CFLAGS="$CFLAGS -fPIC"
      * make clean && make
 
-   This should fix the problem. 
+   The solution 'a' has the advantage of woorking even if you later recompile 
+   iRODS again. The solution 'b' is faster to be implemented. 
 
 4) Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
