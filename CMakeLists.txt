@@ -50,6 +50,11 @@ else()
     message( WARNING "FLAVOR is NOT defined!" )
     set(dsi_library_name globus_gridftp_server_iRODS)
 endif()
+
+if (NOT DEFINED ENV{DEST_LIB_DIR})
+    set(ENV{DEST_LIB_DIR} "$ENV{GLOBUS_LOCATION}/lib")
+endif()
+message("DEST_LIB_DIR is defined as $ENV{DEST_LIB_DIR}")
 #################################
 
 message("DSI library name will be: ${dsi_library_name}")
@@ -64,12 +69,14 @@ include_directories($ENV{IRODS_PATH}/lib/api/include
 $ENV{IRODS_PATH}/lib/core/include
 $ENV{IRODS_PATH}/server/icat/include 
 $ENV{IRODS_PATH}/lib/md5/include/ 
+$ENV{IRODS_PATH}/lib/sha1/include/
 $ENV{IRODS_PATH}/server/core/include/ 
 $ENV{IRODS_PATH}/server/drivers/include/ 
 $ENV{IRODS_PATH}/server/re/include/ 
 $ENV{GLOBUS_LOCATION}/include/globus 
-$ENV{GLOBUS_LOCATION}/lib/globus/include)
+$ENV{GLOBUS_LOCATION}/lib/globus/include
+$ENV{GLOBUS_LOCATION}/lib64/globus/include)
 
 add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
+install(TARGETS ${dsi_library_name} DESTINATION $ENV{DEST_LIB_DIR})
 
-install(TARGETS ${dsi_library_name} DESTINATION $ENV{GLOBUS_LOCATION}/lib)
