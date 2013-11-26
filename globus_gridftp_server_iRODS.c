@@ -309,6 +309,7 @@ iRODS_l_stat1(
             sizeName = (char *) getSqlResultByInx (genQueryOut,COL_DATA_SIZE)->value;
             anotherName = (char *) getSqlResultByInx (genQueryOut,COL_D_OWNER_NAME)->value;
 
+
             memset(stat_out, '\0', sizeof(globus_gfs_stat_t));
             stat_out->symlink_target = NULL;
             stat_out->name = strdup(rsrcName);
@@ -341,7 +342,6 @@ iRODS_l_stat1(
         else if(status == -808000)
         {
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: object or collection called: %s not found\n", start_dir);
-            //status = -808000;
         }
     }
     free(data_dir);
@@ -377,22 +377,6 @@ iRODS_l_stat_dir(
     int				        replica = 0;
     sqlResult_t *dataSize, *replNum, *dataName, *collName, *owner, *dataModify;
   
-
-    /* add in a single '.' entry */
-    stat_count = 1;
-    stat_array = (globus_gfs_stat_t *) globus_calloc(
-        stat_count, sizeof(globus_gfs_stat_t));
-    stat_array[stat_ndx].ino = iRODS_l_filename_hash(start_dir);
-    stat_array[stat_ndx].name = strdup(".");
-    stat_array[stat_ndx].nlink = 0;
-    stat_array[stat_ndx].uid = getuid();
-    stat_array[stat_ndx].gid = getgid();
-        stat_array[stat_ndx].size = 0;
-    stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
-    stat_array[stat_ndx].mode =
-        S_IFDIR | S_IRUSR|S_IWUSR|S_IXUSR|S_IXOTH| S_IRGRP | S_IXGRP;
-    stat_ndx++;
-    
     genQueryInp_t genQueryInp;
     genQueryOut_t *genQueryOut = NULL;
 
@@ -439,6 +423,7 @@ iRODS_l_stat_dir(
                 modTime =  strdup(&dataModify->value[dataModify->len * l]);
                 replica =  atoi(&replNum->value[replNum->len * l]);
  		
+
 		/* retrieve the values */
 		memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
 		stat_array[stat_ndx].symlink_target = NULL;
@@ -514,11 +499,16 @@ iRODS_l_stat_dir(
             {
                 rsrcName  =  &collName->value[collName->len * i];
                 char * fname;
-                memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
                 fname = rsrcName ? rsrcName : "(null)";
                 tmp_s = strrchr(fname, '/');
                 if(tmp_s != NULL) fname = tmp_s + 1;
+                if(strlen(fname) == 0)
+                {
+                    //in iRODS empty dir collection is root dir
+                    fname = ".";
+                }
 
+                memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
                 stat_array[stat_ndx].ino = iRODS_l_filename_hash(rsrcName);
                 stat_array[stat_ndx].name = strdup(fname);
                 stat_array[stat_ndx].nlink = 0;
