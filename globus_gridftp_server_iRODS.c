@@ -531,6 +531,25 @@ iRODS_l_stat_dir(
     }
 
     clearGenQueryInp (&genQueryInp);
+
+    //There should be at least one element (".")
+  
+    if (stat_ndx == 0)
+    {
+        stat_count = 1;
+        stat_array = (globus_gfs_stat_t *) globus_calloc(
+        stat_count, sizeof(globus_gfs_stat_t));
+        stat_array[stat_ndx].ino = iRODS_l_filename_hash(start_dir);
+        stat_array[stat_ndx].name = strdup(".");
+        stat_array[stat_ndx].nlink = 0;
+        stat_array[stat_ndx].uid = getuid();
+        stat_array[stat_ndx].gid = getgid();
+        stat_array[stat_ndx].size = 0;
+        stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
+        S_IFDIR | S_IRUSR|S_IWUSR|S_IXUSR|S_IXOTH| S_IRGRP | S_IXGRP;
+        stat_ndx++;
+
+
     *out_stat = stat_array;
     *out_count = stat_count;
     return 0;

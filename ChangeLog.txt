@@ -1,6 +1,8 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+Release 1.5 (2013-12-04):
+* modified listing: fixed problem listing empty folders with globus-url-copy
 
 Release 1.4 (2013-11-26):
 * modified listing: replace empty dir with ".". Solved listing problem of "/" in GO.
