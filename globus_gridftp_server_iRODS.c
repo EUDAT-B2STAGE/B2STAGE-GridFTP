@@ -548,6 +548,7 @@ iRODS_l_stat_dir(
         stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
         S_IFDIR | S_IRUSR|S_IWUSR|S_IXUSR|S_IXOTH| S_IRGRP | S_IXGRP;
         stat_ndx++;
+    }
 
 
     *out_stat = stat_array;
