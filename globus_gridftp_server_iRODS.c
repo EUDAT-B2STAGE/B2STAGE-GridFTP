@@ -1251,7 +1251,7 @@ globus_l_gfs_iRODS_net_read_cb(
                    iRODS_handle->cached_res = globus_l_gfs_iRODS_make_error("rcDataObjWrite failed", bytes_written);
                    iRODS_handle->done = GLOBUS_TRUE;
                }
-               globus_gridftp_server_update_bytes_written(op, offset, nbytes);
+               globus_gridftp_server_update_bytes_written(op, offset, bytes_written);
             }
         }
 
