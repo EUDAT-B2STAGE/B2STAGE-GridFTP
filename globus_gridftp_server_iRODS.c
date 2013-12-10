@@ -194,7 +194,7 @@ iRODS_getResource(
  
             if (strncmp(path_Read, destinationPath, strlen(path_Read)) == 0)
             {
-	        //found the resource
+	            //found the resource
                 iRODS_res = strtok(NULL, search);
                 unsigned int len = strlen(iRODS_res);
                 if (iRODS_res[len - 1] == '\n')
@@ -218,7 +218,6 @@ iRODS_getResource(
 }
 
 
-
 static
 int
 iRODS_l_stat1(
@@ -227,43 +226,19 @@ iRODS_l_stat1(
     char *                              start_dir)
 {
     int                                 status;
-    char                                condStr[MAX_NAME_LEN];
     char *                              tmp_s;
     char *                              rsrcName;
-    char *                              sizeName;
-    char *                              anotherName;
-    char *                              pathName;
-    char *                              modTime;
-    int                                 sc;
     char *                              fname;
-    char *                              data_dir;
-    char *                              data_name;
-    char *                              full_name;
 
-
-    data_dir = strdup(start_dir);
-    tmp_s = strrchr( data_dir, '/' );
-    *tmp_s = '\0';
-    data_name = tmp_s + 1;
-
-    /* test to see if it is a directory */
-    genQueryInp_t genQueryInp;
-    genQueryOut_t *genQueryOut = NULL;
-
-    memset (&genQueryInp, 0, sizeof (genQueryInp));
-    snprintf (condStr, MAX_NAME_LEN, "='%s'", start_dir);
-    addInxVal (&genQueryInp.sqlCondInp, COL_COLL_NAME, condStr);
-    addInxIval (&genQueryInp.selectInp, COL_COLL_NAME, 1);
-
-    genQueryInp.maxRows = MAX_SQL_ROWS;
-    status =  rcGenQuery (conn, &genQueryInp, &genQueryOut);
-
-    clearGenQueryInp (&genQueryInp);
-
-    if(status == 0 && genQueryOut->rowCnt > 0)
+    collHandle_t collHandle;
+    int queryFlags;
+    queryFlags = DATA_QUERY_FIRST_FG | VERY_LONG_METADATA_FG | NO_TRIM_REPL_FG;
+    status = rclOpenCollection (conn, start_dir, queryFlags,  &collHandle);
+    if (status >= 0)
     {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found collection %s\n", start_dir);
-        rsrcName = (char*) getSqlResultByInx (genQueryOut, COL_COLL_NAME)->value;
+    
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found collection %s.\n", start_dir);
+        rsrcName = (char*) start_dir;
         memset(stat_out, '\0', sizeof(globus_gfs_stat_t));
         fname = rsrcName ? rsrcName : "(null)";
         tmp_s = strrchr(fname, '/');
@@ -281,70 +256,44 @@ iRODS_l_stat1(
     }
     else
     {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: looking for data object %s\n", start_dir);
-        //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS_l_stat1: directory test failed. Trying file: %s\n", start_dir);
-        /* try regular file, get the full boat of info */
-        memset (&genQueryInp, 0, sizeof (genQueryInp));
-
-        snprintf (condStr, MAX_NAME_LEN, "='%s'", data_dir);
-        addInxVal (&genQueryInp.sqlCondInp, COL_COLL_NAME, condStr);
-        snprintf (condStr, MAX_NAME_LEN, "='%s'", data_name);
-        addInxVal (&genQueryInp.sqlCondInp, COL_DATA_NAME, condStr);
-        addInxIval (&genQueryInp.selectInp, COL_COLL_NAME, 1);
-        addInxIval (&genQueryInp.selectInp, COL_DATA_NAME, 1);
-        addInxIval (&genQueryInp.selectInp, COL_DATA_SIZE, 1);
-        addInxIval (&genQueryInp.selectInp, COL_D_OWNER_NAME, 1);
-        addInxIval (&genQueryInp.selectInp, COL_D_MODIFY_TIME, 1);
-
-        genQueryInp.maxRows = MAX_SQL_ROWS;
-
-        status = rcGenQuery (conn, &genQueryInp, &genQueryOut);
-        clearGenQueryInp (&genQueryInp);
-    
-        if(status == 0 && genQueryOut->rowCnt  > 0)
-        {
-            pathName = (char*) getSqlResultByInx (genQueryOut, COL_COLL_NAME)->value;
-            modTime =  strdup(getSqlResultByInx (genQueryOut, COL_D_MODIFY_TIME)->value);
-            rsrcName = (char *) getSqlResultByInx (genQueryOut, COL_DATA_NAME)->value; 
-            sizeName = (char *) getSqlResultByInx (genQueryOut,COL_DATA_SIZE)->value;
-            anotherName = (char *) getSqlResultByInx (genQueryOut,COL_D_OWNER_NAME)->value;
-
-
+        char sizeStr[NAME_LEN];
+        dataObjInp_t dataObjInp; 
+        rodsObjStat_t *rodsObjStatOut = NULL; 
+        bzero (&dataObjInp, sizeof (dataObjInp)); 
+        rstrcpy (dataObjInp.objPath, start_dir, MAX_NAME_LEN); 
+        status = rcObjStat (conn, &dataObjInp, &rodsObjStatOut); 
+        if (status >= 0) 
+        { 
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found data object %s.\n", start_dir);      
             memset(stat_out, '\0', sizeof(globus_gfs_stat_t));
             stat_out->symlink_target = NULL;
-            stat_out->name = strdup(rsrcName);
+            stat_out->name = strdup(start_dir);
             stat_out->nlink = 0;
             stat_out->uid = getuid();
             stat_out->gid = getgid();
-            sc = sscanf(sizeName, "%"GLOBUS_OFF_T_FORMAT,
-                &stat_out->size);
-            if(sc != 1)
-            {
-                stat_out->size = -1;
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS_l_stat1 failed to get size: %s\n", start_dir);
-            }
+            snprintf (sizeStr, NAME_LEN, "%lld", rodsObjStatOut->objSize);
+            stat_out->size = sizeStr;
 
-            time_t realTime = atol(modTime);
+            time_t realTime = atol(rodsObjStatOut->modifyTime);
             stat_out->ctime = realTime;
             stat_out->mtime = realTime;
             stat_out->atime = realTime;
-
-            /* need to fake these next 2 better */
-            stat_out->dev = iRODS_l_dev_wrapper++;
-            full_name = globus_common_create_string(
-                "%s/%s", pathName, rsrcName);
-            stat_out->ino = iRODS_l_filename_hash(full_name);
-            free(full_name);
-
-            stat_out->mode = S_IFREG | S_IRUSR | S_IWUSR | 
-                            S_IXUSR | S_IXOTH | S_IRGRP | S_IXGRP;
+        /* need to fake these next 2 better */
+        //stat_out->dev = iRODS_l_dev_wrapper++;
+        //full_name = globus_common_create_string(
+        //    "%s/%s", pathName, rsrcName);
+       // stat_out->ino = iRODS_l_filename_hash(start_dir);
+        //free(full_name);
+       // stat_out->mode = S_IFREG | S_IRUSR | S_IWUSR | 
+       //                    S_IXUSR | S_IXOTH | S_IRGRP | S_IXGRP;
         }
-        else if(status == -808000)
-        {
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: object or collection called: %s not found\n", start_dir);
-        }
+        freeRodsObjStat (rodsObjStatOut); 
     }
-    free(data_dir);
+
+    if(status == -808000)
+    {
+       globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: object or collection called: %s not found\n", start_dir);
+    }
     return status;
 }
 
@@ -359,181 +308,87 @@ iRODS_l_stat_dir(
     char *                              start_dir,
     char *                              username)
 {
-    int                                 i;
     int                                 status;
-    char                                condStr[MAX_NAME_LEN];
     char *                              tmp_s;
-    char *                              rsrcName;
-    char *                              sizeName;
-    char *                              ownerName;
-    char *                              pathName;
-    char *                              modTime;
-    char *                              full_name;
     globus_gfs_stat_t *                 stat_array = NULL;
     int                                 stat_count = 0;
     int                                 stat_ndx = 0;
-    int                                 continueInx = 1; 
-    int                                 sc;
-    int				        replica = 0;
-    sqlResult_t *dataSize, *replNum, *dataName, *collName, *owner, *dataModify;
-  
-    genQueryInp_t genQueryInp;
-    genQueryOut_t *genQueryOut = NULL;
+    
+    collHandle_t collHandle;
+    collEnt_t collEnt;
+    int queryFlags;
 
-    memset (&genQueryInp, 0, sizeof (genQueryInp));
-    snprintf (condStr, MAX_NAME_LEN, "='%s'", start_dir);
-    addInxVal (&genQueryInp.sqlCondInp, COL_COLL_NAME, condStr);
-
-    snprintf (condStr, MAX_NAME_LEN, "='%i'",0);
-    addInxVal (&genQueryInp.sqlCondInp, COL_DATA_REPL_NUM, condStr);
-
-    addInxIval (&genQueryInp.selectInp, COL_COLL_NAME, 1);
-    addInxIval (&genQueryInp.selectInp, COL_DATA_NAME, 1);
-    addInxIval (&genQueryInp.selectInp, COL_DATA_SIZE, 1);
-    addInxIval (&genQueryInp.selectInp, COL_D_OWNER_NAME, 1);
-    addInxIval (&genQueryInp.selectInp, COL_D_MODIFY_TIME, 1);
-    addInxIval (&genQueryInp.selectInp, COL_DATA_REPL_NUM, 1);
-    genQueryInp.maxRows = MAX_SQL_ROWS;
-
-    while(continueInx > 0){
-        status = rcGenQuery (conn, &genQueryInp, &genQueryOut);
-        if(status < 0 && status != -808000)
-        {
-            clearGenQueryInp (&genQueryInp);
-            return status;
-        }
-        if(status == 0)
-        {
-           pathName = (char*) getSqlResultByInx (genQueryOut, COL_COLL_NAME)->value;
-           dataName = getSqlResultByInx (genQueryOut, COL_DATA_NAME);
-           dataSize = getSqlResultByInx (genQueryOut, COL_DATA_SIZE);
-           owner = getSqlResultByInx (genQueryOut, COL_D_OWNER_NAME);
-           dataModify = getSqlResultByInx (genQueryOut, COL_D_MODIFY_TIME);
-           replNum = getSqlResultByInx (genQueryOut,COL_DATA_REPL_NUM);
-
-           stat_count = genQueryOut->rowCnt + stat_count;
-           stat_array = (globus_gfs_stat_t *) globus_realloc(stat_array,
-                stat_count * sizeof(globus_gfs_stat_t));
-
-            int l;
-            for (l = 0;l < genQueryOut->rowCnt; l++) {
-                rsrcName = &dataName->value[dataName->len * l]; 
-                sizeName = &dataSize->value[dataSize->len * l];
-                ownerName = &owner->value[owner->len * l];
-                modTime =  strdup(&dataModify->value[dataModify->len * l]);
-                replica =  atoi(&replNum->value[replNum->len * l]);
- 		
-
-		/* retrieve the values */
-		memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
-		stat_array[stat_ndx].symlink_target = NULL;
-		stat_array[stat_ndx].name = globus_libc_strdup(rsrcName);
-		stat_array[stat_ndx].nlink = 0;
-		stat_array[stat_ndx].uid = getuid();
-
-		//I could get unix uid from iRODS owner, but iRODS owner can not exist as unix user
-		//so now the file owner is always the user who started the gridftp process
-		//stat_array[stat_ndx].uid = getpwnam(ownerName)->pw_uid;
-
-		stat_array[stat_ndx].gid = getgid();
-		sc = sscanf(sizeName, "%"GLOBUS_OFF_T_FORMAT,
-				&stat_array[stat_ndx].size);
-		if(sc != 1)
-		{
-			stat_array[stat_ndx].size = -1;
-		}
-
-		time_t realTime = atol(modTime);
-		stat_array[stat_ndx].ctime = realTime;
-		stat_array[stat_ndx].mtime = realTime;
-		stat_array[stat_ndx].atime = realTime;
-
-		/* need to fake these next 2 better */
-		stat_array[stat_ndx].dev = iRODS_l_dev_wrapper;
-		full_name = globus_common_create_string(
-				"%s/%s", pathName, rsrcName);
-		stat_array[stat_ndx].ino = iRODS_l_filename_hash(full_name);
-		free(full_name);
-		stat_array[stat_ndx].mode = S_IFREG | S_IRUSR | S_IWUSR | 
-		   S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
-
-                stat_ndx++;
-            }
-        }
-        if (genQueryOut != NULL) {
-            continueInx = genQueryInp.continueInx = genQueryOut->continueInx;
-            freeGenQueryOut (&genQueryOut);
-        } else {
-            continueInx = 0;
-        }
+    queryFlags = DATA_QUERY_FIRST_FG | VERY_LONG_METADATA_FG | NO_TRIM_REPL_FG;
+    status = rclOpenCollection (conn, start_dir, queryFlags,  &collHandle);
+    
+    if (status < 0) {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rclOpenCollection of %s error. status = %d", start_dir, status);
+        return status;
     }
-    clearGenQueryInp (&genQueryInp);
 
-    /* now we need to do directories/collections */
-    memset (&genQueryInp, 0, sizeof (genQueryInp));
-    snprintf (condStr, COL_COLL_PARENT_NAME, "='%s'", start_dir);
-    addInxVal (&genQueryInp.sqlCondInp, COL_COLL_PARENT_NAME, condStr);
-    addInxIval (&genQueryInp.selectInp, COL_COLL_NAME, 1);
-    addInxIval (&genQueryInp.selectInp, COL_COLL_PARENT_NAME, 1);
-
-    genQueryInp.maxRows = MAX_SQL_ROWS;
-    continueInx = 1;
-
-    while (continueInx > 0)
+    while ((status = rclReadCollection (conn, &collHandle, &collEnt)) >= 0)
     {
-        status = rcGenQuery (conn, &genQueryInp, &genQueryOut);
-        if(status < 0 && status != -808000)
+        stat_count++;
+        stat_array = (globus_gfs_stat_t *) globus_realloc(stat_array, stat_count * sizeof(globus_gfs_stat_t));
+
+        if (collEnt.objType == DATA_OBJ_T) 
         {
-            /* free some leaks here */
-            clearGenQueryInp (&genQueryInp);
-            return status;
-        }
-        if (status == 0)
-        {      
-            collName = getSqlResultByInx (genQueryOut, COL_COLL_NAME);
+		    memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
+		    stat_array[stat_ndx].symlink_target = NULL;
+		    stat_array[stat_ndx].name = globus_libc_strdup(collEnt.dataName);
+    	    stat_array[stat_ndx].nlink = 0;
+	        stat_array[stat_ndx].uid = getuid();
 
-            stat_count = genQueryOut->rowCnt  + stat_count;
-            stat_array = (globus_gfs_stat_t *) globus_realloc(stat_array,
-                    stat_count * sizeof(globus_gfs_stat_t));
-            for (i = 0; i < genQueryOut->rowCnt; i++)
+	        //I could get unix uid from iRODS owner, but iRODS owner can not exist as unix user
+	       	//so now the file owner is always the user who started the gridftp process
+	       	//stat_array[stat_ndx].uid = getpwnam(ownerName)->pw_uid;
+		    
+            stat_array[stat_ndx].gid = getgid();
+            stat_array[stat_ndx].size = collEnt.dataSize;
+
+		    time_t realTime = atol(collEnt.modifyTime);
+	    	stat_array[stat_ndx].ctime = realTime;
+    	  	stat_array[stat_ndx].mtime = realTime;
+        	stat_array[stat_ndx].atime = realTime;
+
+            // need to fake these next 2 better
+          /*	stat_array[stat_ndx].dev = iRODS_l_dev_wrapper;
+	       	full_name = globus_common_create_string(
+	        	"%s/%s", collEnt.collName , collEnt.dataName);
+	       	stat_array[stat_ndx].ino = iRODS_l_filename_hash(full_name);
+        	free(full_name);
+		    stat_array[stat_ndx].mode = S_IFREG | S_IRUSR | S_IWUSR | 
+		        S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;*/
+        } 
+        else
+        {
+            char * fname;
+            fname = collEnt.collName ? collEnt.collName : "(null)";
+            tmp_s = strrchr(fname, '/');
+            if(tmp_s != NULL) fname = tmp_s + 1;
+            if(strlen(fname) == 0)
             {
-                rsrcName  =  &collName->value[collName->len * i];
-                char * fname;
-                fname = rsrcName ? rsrcName : "(null)";
-                tmp_s = strrchr(fname, '/');
-                if(tmp_s != NULL) fname = tmp_s + 1;
-                if(strlen(fname) == 0)
-                {
-                    //in iRODS empty dir collection is root dir
-                    fname = ".";
-                }
-
-                memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
-                stat_array[stat_ndx].ino = iRODS_l_filename_hash(rsrcName);
-                stat_array[stat_ndx].name = strdup(fname);
-                stat_array[stat_ndx].nlink = 0;
-                stat_array[stat_ndx].uid = getuid();
-                stat_array[stat_ndx].gid = getgid();
-                stat_array[stat_ndx].size = 0;
-                stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
-                stat_array[stat_ndx].mode = S_IFDIR | S_IRUSR | S_IWUSR | 
-                    S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
-
-                stat_ndx++;
+                //in iRODS empty dir collection is root dir
+                fname = ".";
             }
+                
+            memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
+            stat_array[stat_ndx].ino = iRODS_l_filename_hash(collEnt.collName);
+            stat_array[stat_ndx].name = strdup(fname);
+            stat_array[stat_ndx].nlink = 0;
+            stat_array[stat_ndx].uid = getuid();
+            stat_array[stat_ndx].gid = getgid();
+            stat_array[stat_ndx].size = 0;
+            stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
+            stat_array[stat_ndx].mode = S_IFDIR | S_IRUSR | S_IWUSR | 
+                S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
         }
-        if (genQueryOut != NULL) {
-            continueInx = genQueryInp.continueInx = genQueryOut->continueInx;
-            freeGenQueryOut (&genQueryOut);
-        } else {
-            continueInx = 0;
-        }
+      stat_ndx++;
     }
 
-    clearGenQueryInp (&genQueryInp);
+    rclCloseCollection (&collHandle);
 
     //There should be at least one element (".")
-  
     if (stat_ndx == 0)
     {
         stat_count = 1;
@@ -546,14 +401,16 @@ iRODS_l_stat_dir(
         stat_array[stat_ndx].gid = getgid();
         stat_array[stat_ndx].size = 0;
         stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
-        S_IFDIR | S_IRUSR|S_IWUSR|S_IXUSR|S_IXOTH| S_IRGRP | S_IXGRP;
         stat_ndx++;
     }
-
-
     *out_stat = stat_array;
     *out_count = stat_count;
-    return 0;
+
+    if (status < 0 && status != -808000) {
+        return (status);
+    } else {
+        return (0);
+    }
 }
 
 
@@ -787,7 +644,7 @@ globus_l_gfs_iRODS_stat(
     GlobusGFSName(globus_l_gfs_iRODS_stat);
 
     iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
-
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: ---------> CALLED STAT!! <----------\n"); 
     /* first test for obvious directories */
     iRODS_l_reduce_path(stat_info->pathname);
 
