@@ -1,6 +1,9 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+Release 1.6 (2013-12-10):
+* fixed listing of mounted collections
+
 Release 1.5 (2013-12-04):
 * modified listing: fixed problem listing empty folders with globus-url-copy
 
