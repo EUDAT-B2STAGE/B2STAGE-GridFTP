@@ -278,14 +278,6 @@ iRODS_l_stat1(
             stat_out->ctime = realTime;
             stat_out->mtime = realTime;
             stat_out->atime = realTime;
-        /* need to fake these next 2 better */
-        //stat_out->dev = iRODS_l_dev_wrapper++;
-        //full_name = globus_common_create_string(
-        //    "%s/%s", pathName, rsrcName);
-       // stat_out->ino = iRODS_l_filename_hash(start_dir);
-        //free(full_name);
-       // stat_out->mode = S_IFREG | S_IRUSR | S_IWUSR | 
-       //                    S_IXUSR | S_IXOTH | S_IRGRP | S_IXGRP;
         }
         freeRodsObjStat (rodsObjStatOut); 
     }
@@ -350,15 +342,6 @@ iRODS_l_stat_dir(
 	    	stat_array[stat_ndx].ctime = realTime;
     	  	stat_array[stat_ndx].mtime = realTime;
         	stat_array[stat_ndx].atime = realTime;
-
-            // need to fake these next 2 better
-          /*	stat_array[stat_ndx].dev = iRODS_l_dev_wrapper;
-	       	full_name = globus_common_create_string(
-	        	"%s/%s", collEnt.collName , collEnt.dataName);
-	       	stat_array[stat_ndx].ino = iRODS_l_filename_hash(full_name);
-        	free(full_name);
-		    stat_array[stat_ndx].mode = S_IFREG | S_IRUSR | S_IWUSR | 
-		        S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;*/
         } 
         else
         {
@@ -644,7 +627,6 @@ globus_l_gfs_iRODS_stat(
     GlobusGFSName(globus_l_gfs_iRODS_stat);
 
     iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: ---------> CALLED STAT!! <----------\n"); 
     /* first test for obvious directories */
     iRODS_l_reduce_path(stat_info->pathname);
 
@@ -652,7 +634,7 @@ globus_l_gfs_iRODS_stat(
 
     if (status == -808000)
     {
-        result = globus_l_gfs_iRODS_make_error("No such file or directory.", status); //UberFTP NEEDS "No such file or directory"
+        result = globus_l_gfs_iRODS_make_error("No such file or directory.", status); //UberFTP NEEDS "No such file or directory" in error message
         goto error;
     }
     else if(status < 0)
