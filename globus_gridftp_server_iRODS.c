@@ -278,6 +278,10 @@ iRODS_l_stat1(
             stat_out->ctime = realTime;
             stat_out->mtime = realTime;
             stat_out->atime = realTime;
+            stat_out->dev = iRODS_l_dev_wrapper;
+            stat_out->ino = iRODS_l_filename_hash(start_dir);
+            stat_out->mode = S_IFREG | S_IRUSR | S_IWUSR |
+                S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
         }
         freeRodsObjStat (rodsObjStatOut); 
     }
@@ -342,6 +346,11 @@ iRODS_l_stat_dir(
 	    	stat_array[stat_ndx].ctime = realTime;
     	  	stat_array[stat_ndx].mtime = realTime;
         	stat_array[stat_ndx].atime = realTime;
+            stat_array[stat_ndx].dev = iRODS_l_dev_wrapper;
+            stat_array[stat_ndx].ino = iRODS_l_filename_hash(collEnt.dataName);
+            stat_array[stat_ndx].mode = S_IFREG | S_IRUSR | S_IWUSR |
+                S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
+
         } 
         else
         {
@@ -645,13 +654,14 @@ globus_l_gfs_iRODS_stat(
     /* iRODSFileStat */
     if(!S_ISDIR(stat_buf.mode) || stat_info->file_only)
     {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: globus_l_gfs_iRODS_stat(): single file\n");
+        //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: globus_l_gfs_iRODS_stat(): single file\n");
         stat_array = (globus_gfs_stat_t *) globus_calloc(
             1, sizeof(globus_gfs_stat_t));
         memcpy(stat_array, &stat_buf, sizeof(globus_gfs_stat_t));
     }
     else
     {
+        //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: globus_l_gfs_iRODS_stat(): collection\n");
         int rc;
         free(stat_buf.name);
         rc = iRODS_l_stat_dir(iRODS_handle->conn, &stat_array, &stat_count, stat_info->pathname, iRODS_handle->user);
