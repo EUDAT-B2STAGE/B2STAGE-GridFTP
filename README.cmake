@@ -85,10 +85,11 @@ server package without recompiling it.
       CFLAGS +=  -fPIC
       * make clean && make
 
-   b) in ${IRODS_PATH} modify   
-      * config/irods.config
-      * config/platform.mk
-      $CCFLAGS = '-fPIC'; 
+   b) in ${IRODS_PATH} modify CCFLAGS variable:  
+      * config/irods.config:
+        $CCFLAGS = '-fPIC'; 
+      * config/platform.mk:
+        CCFLAGS=-fPIC
       * irodssetup
 
    c) in ${IRODS_PATH}:
