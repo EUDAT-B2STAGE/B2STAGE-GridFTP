@@ -74,6 +74,7 @@ $ENV{IRODS_PATH}/server/core/include/
 $ENV{IRODS_PATH}/server/drivers/include/ 
 $ENV{IRODS_PATH}/server/re/include/ 
 $ENV{GLOBUS_LOCATION}/include/globus 
+$ENV{GLOBUS_LOCATION}/include/gcc64pthr
 $ENV{GLOBUS_LOCATION}/lib/globus/include
 $ENV{GLOBUS_LOCATION}/lib64/globus/include)
 
