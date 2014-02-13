@@ -43,7 +43,8 @@ Installation
 The installation is quite simple: it is possible to use the official gridftp 
 server package without recompiling it.
 
-1) Set the following environment variables:
+1) Set the following environment variables (it can be done editing and renaming 
+   the "setup.sh.template" file):
 
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
