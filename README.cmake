@@ -43,7 +43,8 @@ Installation
 The installation is quite simple: it is possible to use the official gridftp 
 server package without recompiling it.
 
-1) Set the following environment variables:
+1) Set the following environment variables (it can be done editing and renaming 
+   the "setup.sh.template" file):
 
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
@@ -85,10 +86,11 @@ server package without recompiling it.
       CFLAGS +=  -fPIC
       * make clean && make
 
-   b) in ${IRODS_PATH} modify   
-      * config/irods.config
-      * config/platform.mk
-      $CCFLAGS = '-fPIC'; 
+   b) in ${IRODS_PATH} modify CCFLAGS variable:  
+      * config/irods.config:
+        $CCFLAGS = '-fPIC'; 
+      * config/platform.mk:
+        CCFLAGS=-fPIC
       * irodssetup
 
    c) in ${IRODS_PATH}:
