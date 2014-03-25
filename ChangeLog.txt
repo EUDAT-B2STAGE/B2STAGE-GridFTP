@@ -1,0 +1,26 @@
+****************************************
+***** GridFTP iRODS DSI change log *****
+****************************************
+Release 1.6.1 (2013-12-10):
+* get zone from user name if it contains # (hash) char
+
+Release 1.6 (2013-12-10):
+* fixed listing of mounted collections
+
+Release 1.5 (2013-12-04):
+* modified listing: fixed problem listing empty folders with globus-url-copy
+
+Release 1.4 (2013-11-26):
+* modified listing: replace empty dir with ".". Solved listing problem of "/" in GO.
+* removed force flag calculating MD5 checksum.
+
+Release 1.3 (2013-11-20): 
+* create a new resource and write it instead of opening the existing one and write.
+* fixed instructions about fPIC in README
+* added DEST_LIB_DIR variable to the CMakeLists.txt.
+
+Release 1.2 (2013-09-11):
+* modified return error in case of no file or dir found. Modified to work with UberFTP.
+
+Release 1.1 (2013-08-07):
+* added CMakeLists.txt to compile with cmake building system.
