@@ -271,8 +271,7 @@ iRODS_l_stat1(
             stat_out->nlink = 0;
             stat_out->uid = getuid();
             stat_out->gid = getgid();
-            snprintf (sizeStr, NAME_LEN, "%lld", rodsObjStatOut->objSize);
-            stat_out->size = sizeStr;
+            stat_out->size = rodsObjStatOut->objSize;
 
             time_t realTime = atol(rodsObjStatOut->modifyTime);
             stat_out->ctime = realTime;
@@ -650,7 +649,7 @@ globus_l_gfs_iRODS_stat(
 
     status = iRODS_l_stat1(iRODS_handle->conn, &stat_buf, stat_info->pathname);
 
-    if (status == -808000)
+    if (status == -808000 || status == -310000)
     {
         result = globus_l_gfs_iRODS_make_error("No such file or directory.", status); //UberFTP NEEDS "No such file or directory" in error message
         goto error;
