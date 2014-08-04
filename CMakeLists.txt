@@ -23,6 +23,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 project (iRODS_DSI C)
+set(GENERIC_LIB_VERSION "1.6.3")
 
 ##### Check ENV variables ######
 if (DEFINED ENV{GLOBUS_LOCATION})
@@ -61,6 +62,7 @@ message("DSI library name will be: ${dsi_library_name}")
 
 add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c)
 
+set_target_properties( ${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
 target_link_libraries (${dsi_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
 
 set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++")
