@@ -1,6 +1,13 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+
+Release 1.6.2 (2014-08-01):
+* return "no such file or directory" error message if resource not found
+
+Release 1.6.1 (2014-02-20):
+* get zone from user name if it contains # (hash) char
+
 Release 1.6 (2013-12-10):
 * fixed listing of mounted collections
 
