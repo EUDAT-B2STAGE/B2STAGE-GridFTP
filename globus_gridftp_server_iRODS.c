@@ -779,7 +779,7 @@ globus_l_gfs_iRODS_command(
                dataObjInp_t dataObjInp;
                bzero (&dataObjInp, sizeof (dataObjInp));
                rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-               //addKeyVal (&dataObjInp.condInput, FORCE_CHKSUM_KW, "");
+               addKeyVal (&dataObjInp.condInput, FORCE_CHKSUM_KW, "");
                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum: collection=%s\n", collection);
                status = rcDataObjChksum (iRODS_handle->conn, &dataObjInp, &outChksum);
            }
@@ -882,6 +882,7 @@ globus_l_gfs_iRODS_recv(
 
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
+    dataObjInp.openFlags = O_TRUNC | O_WRONLY;
     if (iRODS_Resource_struct.resource != NULL)
     {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
