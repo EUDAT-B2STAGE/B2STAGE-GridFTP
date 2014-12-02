@@ -427,7 +427,7 @@ typedef struct globus_l_gfs_iRODS_handle_s
     globus_fifo_t                       rh_q;
     
     char *                              hostname;
-    char *                              port;
+    int                                 port;
     
     char *                              zone;
     char *                              user;
@@ -543,7 +543,7 @@ globus_l_gfs_iRODS_start(
     }
     
     iRODS_handle->hostname = myRodsEnv.rodsHost;
-    iRODS_handle->port = (char *)myRodsEnv.rodsPort;
+    iRODS_handle->port = myRodsEnv.rodsPort;
     iRODS_handle->zone = myRodsEnv.rodsZone;
     iRODS_handle->user = iRODS_getUserName(session_info->subject); //iRODS usernmae
     user_name = strdup(session_info->username); //Globus user name
@@ -567,7 +567,7 @@ globus_l_gfs_iRODS_start(
     }
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
-    iRODS_handle->conn = rcConnect(iRODS_handle->hostname, (int)iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
+    iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
     if (iRODS_handle->conn == NULL) {
         tmp_str = globus_common_create_string("rcConnect failed::\n  '%s'. Host: '%s', Port: '%i', UserName '%s', Zone '%s'\n",errMsg.msg, iRODS_handle->hostname,
         iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
