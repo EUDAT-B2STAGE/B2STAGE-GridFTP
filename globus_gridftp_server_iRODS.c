@@ -557,9 +557,13 @@ globus_l_gfs_iRODS_start(
     char delims[] = "#";
     char *token = NULL;
     token = strtok( iRODS_handle->user, delims );
-    if( token != NULL ) {
-        iRODS_handle->zone = strtok( NULL, delims );
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
+    if (token != NULL ) {
+        // Second token is the zone
+        token = strtok( NULL, delims );
+        if ( token != NULL ) {
+            iRODS_handle->zone = token;
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
+        }
     }
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
