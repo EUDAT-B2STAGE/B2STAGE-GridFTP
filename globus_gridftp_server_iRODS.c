@@ -583,8 +583,8 @@ globus_l_gfs_iRODS_start(
 
 
 
-    free(user_name);
     finished_info.info.session.home_dir = globus_common_create_string("/%s/home/%s", iRODS_handle->zone, user_name);
+    free(user_name);
 
     globus_gridftp_server_operation_finished(op, GLOBUS_SUCCESS, &finished_info);
     globus_free(finished_info.info.session.home_dir);
