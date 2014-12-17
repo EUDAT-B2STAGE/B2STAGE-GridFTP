@@ -70,7 +70,7 @@ server package without recompiling it.
 
    An error like:
    ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
-   relocation R_X86_64_32 against `.bss' can not be used when making a
+   relocation R_X86_64_32 against `.bss` can not be used when making a
    shared object; recompile with -fPIC
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
@@ -173,6 +173,9 @@ Logrotate
 If you use -d ALL as in the example, please, be aware that the log files could 
 grow quite a lot so the use of logrotate is suggested. 
 
+
+
+
 Licence
 ---------------------------------
  Copyright (c) 2013 CINECA (www.hpc.cineca.it)
@@ -195,7 +198,6 @@ Licence
  Globus DSI to manage data on iRODS.
  
  Author: Roberto Mucci - SCAI - CINECA
- * Email:  hpc-service@cineca.it
- *
- */
+ Email:  hpc-service@cineca.it
+
 
