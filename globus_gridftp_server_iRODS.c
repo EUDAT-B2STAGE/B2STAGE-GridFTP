@@ -584,12 +584,11 @@ globus_l_gfs_iRODS_start(
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: connected.\n");
 
-    free(user_name);
+
+
+
     finished_info.info.session.home_dir = globus_common_create_string("/%s/home/%s", iRODS_handle->zone, user_name);
-    
-    /*If the home dir is composed by zone + user name, free user_name after 
-      setting finished_info.info.session.home_dir: move "free(user_name);" 
-      after whis comment. */
+    free(user_name);
 
     globus_gridftp_server_operation_finished(op, GLOBUS_SUCCESS, &finished_info);
     globus_free(finished_info.info.session.home_dir);
