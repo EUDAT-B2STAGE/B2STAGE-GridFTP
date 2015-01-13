@@ -36,6 +36,16 @@
   #define IRODS_MAPS_PATH = ""
 #endif
 
+#ifndef DEFAULT_HOMEDIR_PATTERN
+  /* Default homeDir pattern, referencing up to two strings with %s.
+   * If used, first gets substituted with the zone name, second with the user name.
+   */
+  #define DEFAULT_HOMEDIR_PATTERN "/%s/home/%s"
+#endif
+
+/* name of environment variable to check for the homeDirPattern */
+#define HOMEDIR_PATTERN "homeDirPattern"
+
 static int                              iRODS_l_dev_wrapper = 10;
 struct iRODS_Resource
 {
@@ -515,6 +525,7 @@ globus_l_gfs_iRODS_start(
 
     rodsEnv myRodsEnv;
     char *user_name;
+    char *homeDirPattern;
     int status;
     rErrMsg_t errMsg;
 
@@ -584,10 +595,9 @@ globus_l_gfs_iRODS_start(
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: connected.\n");
 
-
-
-
-    finished_info.info.session.home_dir = globus_common_create_string("/%s/home/%s", iRODS_handle->zone, user_name);
+    homeDirPattern = getenv(HOMEDIR_PATTERN);
+    if (homeDirPattern == NULL) { homeDirPattern = DEFAULT_HOMEDIR_PATTERN; }
+    finished_info.info.session.home_dir = globus_common_create_string(homeDirPattern, iRODS_handle->zone, user_name);
     free(user_name);
 
     globus_gridftp_server_operation_finished(op, GLOBUS_SUCCESS, &finished_info);
