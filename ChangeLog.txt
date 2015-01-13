@@ -1,6 +1,10 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+Release 1.6.4 (2015-01-13):
+* made default home directory configurable via $homeDirPattern environment
+  variable.
+* bug fixing
 
 Release 1.6.3 (2014-08-04):
 * added .so versioning system to CmakeList.txt. Example:
