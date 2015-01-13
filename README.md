@@ -170,16 +170,16 @@ required):
 Additional configuration
 --------------------------------
 1) If desired, change the default home directory by setting the homeDirPattern
-   environment variable in '/etc/gridftp.conf'.  The pattern can reference up to
-   two strings with '%s', first gets substituted with the zone name, second with
-   the user name.  The default value is "/%s/home/%s", making the default
-   directory '/<zone>/home/<username>'.  
+   environment variable in ````/etc/gridftp.conf````.  The pattern can reference up to
+   two strings with ````%s````, first gets substituted with the zone name, second with
+   the user name.  The default value is ````"/%s/home/%s"````, making the default
+   directory ````/<zone>/home/<username>````.
 
 Default configuration:
 
        $homeDirPattern "/%s/home/%s"
 
-Example alternative configuration (defaulting to '/<zone>/home'):
+Example alternative configuration (defaulting to ````/<zone>/home````):
 
        $homeDirPattern "/%s/home"
 
