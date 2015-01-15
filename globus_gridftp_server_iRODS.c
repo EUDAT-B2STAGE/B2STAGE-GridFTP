@@ -323,6 +323,9 @@ iRODS_l_stat_dir(
     collEnt_t collEnt;
     int queryFlags;
 
+    char *                              stat_last_data_obj_name = NULL;
+    // will hold a copy of the pointer to last file, not a copy of the string
+
     queryFlags = DATA_QUERY_FIRST_FG | VERY_LONG_METADATA_FG | NO_TRIM_REPL_FG;
     status = rclOpenCollection (conn, start_dir, queryFlags,  &collHandle);
     
@@ -333,6 +336,11 @@ iRODS_l_stat_dir(
 
     while ((status = rclReadCollection (conn, &collHandle, &collEnt)) >= 0)
     {
+        // skip duplicate listings of data objects (additional replicas)
+        if ( (collEnt.objType == DATA_OBJ_T) && 
+             (stat_last_data_obj_name != NULL) && 
+             (strcmp(stat_last_data_obj_name, collEnt.dataName) == 0) ) continue;
+
         stat_count++;
         stat_array = (globus_gfs_stat_t *) globus_realloc(stat_array, stat_count * sizeof(globus_gfs_stat_t));
 
@@ -341,6 +349,7 @@ iRODS_l_stat_dir(
 		    memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
 		    stat_array[stat_ndx].symlink_target = NULL;
 		    stat_array[stat_ndx].name = globus_libc_strdup(collEnt.dataName);
+                    stat_last_data_obj_name = stat_array[stat_ndx].name;
     	    stat_array[stat_ndx].nlink = 0;
 	        stat_array[stat_ndx].uid = getuid();
 
