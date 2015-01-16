@@ -389,6 +389,11 @@ iRODS_l_stat_dir(
             stat_array[stat_ndx].uid = getuid();
             stat_array[stat_ndx].gid = getgid();
             stat_array[stat_ndx].size = 0;
+
+            time_t realTime = atol(collEnt.modifyTime);
+            stat_array[stat_ndx].ctime = realTime;
+            stat_array[stat_ndx].mtime = realTime;
+
             stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
             stat_array[stat_ndx].mode = S_IFDIR | S_IRUSR | S_IWUSR | 
                 S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
