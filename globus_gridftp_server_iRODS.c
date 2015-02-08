@@ -322,6 +322,7 @@ iRODS_l_stat_dir(
     collHandle_t collHandle;
     collEnt_t collEnt;
     int queryFlags;
+    int internal_idx;
 
     char *                              stat_last_data_obj_name = NULL;
     // will hold a copy of the pointer to last file, not a copy of the string
@@ -333,6 +334,36 @@ iRODS_l_stat_dir(
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rclOpenCollection of %s error. status = %d", start_dir, status);
         return status;
     }
+
+    //We should always be including "." and ".."
+    //Run this block twice, add "." on iteration 0, ".." on iteration 1
+    //We skip this for the root directory, as it already provides "."
+    //internally - and we do not need .. there.
+    if (strcmp("/", start_dir) !=0 )
+      for (internal_idx = 0; internal_idx<=1; internal_idx++) {
+        stat_count++;
+        stat_array = (globus_gfs_stat_t *) globus_realloc(stat_array, stat_count * sizeof(globus_gfs_stat_t));
+        memset(&stat_array[stat_ndx], '\0', sizeof(globus_gfs_stat_t));
+        if ( internal_idx == 0 ) {
+            stat_array[stat_ndx].ino = iRODS_l_filename_hash(start_dir);
+            stat_array[stat_ndx].name = globus_libc_strdup(".");
+        } else {
+            char * parent_dir = strdup(start_dir);
+            char * last_slash = strrchr(parent_dir,'/');
+            if (last_slash != NULL) *last_slash='\0';
+            stat_array[stat_ndx].ino = iRODS_l_filename_hash(parent_dir);
+            stat_array[stat_ndx].name = globus_libc_strdup("..");
+            free(parent_dir);
+        };
+        stat_array[stat_ndx].nlink = 0;
+        stat_array[stat_ndx].uid = getuid();
+        stat_array[stat_ndx].gid = getgid();
+        stat_array[stat_ndx].size = 0;
+        stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
+        stat_array[stat_ndx].mode = S_IFDIR | S_IRUSR | S_IWUSR | 
+            S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
+        stat_ndx++;
+      }
 
     while ((status = rclReadCollection (conn, &collHandle, &collEnt)) >= 0)
     {
@@ -403,21 +434,6 @@ iRODS_l_stat_dir(
 
     rclCloseCollection (&collHandle);
 
-    //There should be at least one element (".")
-    if (stat_ndx == 0)
-    {
-        stat_count = 1;
-        stat_array = (globus_gfs_stat_t *) globus_calloc(
-        stat_count, sizeof(globus_gfs_stat_t));
-        stat_array[stat_ndx].ino = iRODS_l_filename_hash(start_dir);
-        stat_array[stat_ndx].name = strdup(".");
-        stat_array[stat_ndx].nlink = 0;
-        stat_array[stat_ndx].uid = getuid();
-        stat_array[stat_ndx].gid = getgid();
-        stat_array[stat_ndx].size = 0;
-        stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
-        stat_ndx++;
-    }
     *out_stat = stat_array;
     *out_count = stat_count;
 
