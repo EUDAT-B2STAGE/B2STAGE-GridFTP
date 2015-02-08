@@ -287,7 +287,7 @@ iRODS_l_stat1(
             stat_out->ctime = realTime;
             stat_out->mtime = realTime;
             stat_out->atime = realTime;
-            stat_out->dev = iRODS_l_dev_wrapper;
+            stat_out->dev = iRODS_l_dev_wrapper++;
             stat_out->ino = iRODS_l_filename_hash(start_dir);
             stat_out->mode = S_IFREG | S_IRUSR | S_IWUSR |
                 S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
@@ -395,7 +395,7 @@ iRODS_l_stat_dir(
 	    	stat_array[stat_ndx].ctime = realTime;
     	  	stat_array[stat_ndx].mtime = realTime;
         	stat_array[stat_ndx].atime = realTime;
-            stat_array[stat_ndx].dev = iRODS_l_dev_wrapper;
+            stat_array[stat_ndx].dev = iRODS_l_dev_wrapper++;
             stat_array[stat_ndx].ino = iRODS_l_filename_hash(collEnt.dataName);
             stat_array[stat_ndx].mode = S_IFREG | S_IRUSR | S_IWUSR |
                 S_IXUSR | S_IROTH | S_IXOTH | S_IRGRP | S_IXGRP;
