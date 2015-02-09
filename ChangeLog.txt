@@ -1,6 +1,12 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+
+Release 1.6.5 (2015-02-09):
+* Listing: avoid duplicate files for multiple replicas
+* Listing: display timestamps also for collections
+* Listing: include "." and ".." in directory listings
+
 Release 1.6.4 (2015-01-13):
 * made default home directory configurable via $homeDirPattern environment
   variable.
