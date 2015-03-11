@@ -266,7 +266,6 @@ iRODS_l_stat1(
     }
     else
     {
-        char sizeStr[NAME_LEN];
         dataObjInp_t dataObjInp; 
         rodsObjStat_t *rodsObjStatOut = NULL; 
         bzero (&dataObjInp, sizeof (dataObjInp)); 
