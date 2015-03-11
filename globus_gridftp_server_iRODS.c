@@ -655,12 +655,15 @@ globus_l_gfs_iRODS_destroy(
 {
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
 
-    iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
-    globus_mutex_destroy(&iRODS_handle->mutex);
-    globus_fifo_destroy(&iRODS_handle->rh_q);
-    iRODS_disconnect(iRODS_handle->conn);
+    if (user_arg != NULL) {
 
-    globus_free(iRODS_handle);
+		iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
+		globus_mutex_destroy(&iRODS_handle->mutex);
+		globus_fifo_destroy(&iRODS_handle->rh_q);
+		iRODS_disconnect(iRODS_handle->conn);
+
+		globus_free(iRODS_handle);
+    };
 }
 
 /*************************************************************************
