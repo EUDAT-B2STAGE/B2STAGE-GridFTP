@@ -177,7 +177,8 @@ iRODS_getUserName(
         }
         fclose ( file );
     } 
-    return iRODS_user_name; 
+    // the username is a string on the stack, return a copy (if it's not NULL)
+    return iRODS_user_name == NULL ? NULL : strdup(iRODS_user_name);
 }
 
 
@@ -582,29 +583,36 @@ globus_l_gfs_iRODS_start(
         goto rodsenv_error; 
     }
     
-    iRODS_handle->hostname = myRodsEnv.rodsHost;
+    // myRodsEnv is a structure on the stack, we must make explicit string copies
+    iRODS_handle->hostname = strdup(myRodsEnv.rodsHost);
     iRODS_handle->port = myRodsEnv.rodsPort;
-    iRODS_handle->zone = myRodsEnv.rodsZone;
+    iRODS_handle->zone = strdup(myRodsEnv.rodsZone);
     iRODS_handle->user = iRODS_getUserName(session_info->subject); //iRODS usernmae
     user_name = strdup(session_info->username); //Globus user name
     
     if (iRODS_handle->user == NULL)
     {
-        iRODS_handle->user = session_info->username;
+        iRODS_handle->user = strdup(session_info->username);
     }
 
     //Get zone from username if it contains "#"
     char delims[] = "#";
     char *token = NULL;
-    token = strtok( iRODS_handle->user, delims );
+    // strtok modifies the input string, so we instead pass it a copy
+    char *username_to_parse = strdup(iRODS_handle->user);
+    token = strtok( username_to_parse, delims );
     if (token != NULL ) {
         // Second token is the zone
-        token = strtok( NULL, delims );
-        if ( token != NULL ) {
-            iRODS_handle->zone = token;
+        char *token2 = strtok( NULL, delims );
+        if ( token2 != NULL ) {
+            if (iRODS_handle->zone != NULL) free(iRODS_handle->zone);
+            iRODS_handle->zone = strdup(token2);
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
+            if (iRODS_handle->user != NULL) free(iRODS_handle->user);
+            iRODS_handle->user = strdup(token);
         }
     }
+    free(username_to_parse);
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
     iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
