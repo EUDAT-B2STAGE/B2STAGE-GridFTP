@@ -183,6 +183,27 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
 
        $homeDirPattern "/%s/home"
 
+2) Optionally, turn on the feature that would make the DSI module authenticate
+   as the rods admin user - but operate under the privileges of the target user.
+
+* Grant the GridFTP server access to the rods account:
+
+        $ iadmin aua rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
+        $ iadmin lua rods
+        rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
+
+* Make sure 'irodsUserName' is included in the '/path/to/.irodsEnv' file created above:
+
+        irodsUserName rods
+
+* Set the ````$irodsConnectAsAdmin````  environment variable in ````/etc/gridftp.conf```` to a non-empty value:
+
+        $irodsConnectAsAdmin "rods"
+
+  With all of this in place, it is no longer necessary to associate the DN of the server with each individual user - the server can now access user accounts through the rods account.
+
+  NOTE: this feature requires iRODS server at least 3.3 - GSI authentication with a proxy user breaks on iRODS 3.2 and earlier.
+
 
 Logrotate
 --------------------------------

@@ -46,6 +46,9 @@
 /* name of environment variable to check for the homeDirPattern */
 #define HOMEDIR_PATTERN "homeDirPattern"
 
+/* if present, connect as the admin account stored in rodsEnv and not as the user */
+#define IRODS_CONNECT_AS_ADMIN "irodsConnectAsAdmin"
+
 static int                              iRODS_l_dev_wrapper = 10;
 struct iRODS_Resource
 {
@@ -614,8 +617,13 @@ globus_l_gfs_iRODS_start(
     }
     free(username_to_parse);
 
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
-    iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
+    if (getenv(IRODS_CONNECT_AS_ADMIN)!=NULL) {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
+        iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
+    } else {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
+        iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
+    }
     if (iRODS_handle->conn == NULL) {
         tmp_str = globus_common_create_string("rcConnect failed::\n  '%s'. Host: '%s', Port: '%i', UserName '%s', Zone '%s'\n",errMsg.msg, iRODS_handle->hostname,
         iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
