@@ -634,7 +634,7 @@ globus_l_gfs_iRODS_start(
 
     homeDirPattern = getenv(HOMEDIR_PATTERN);
     if (homeDirPattern == NULL) { homeDirPattern = DEFAULT_HOMEDIR_PATTERN; }
-    finished_info.info.session.home_dir = globus_common_create_string(homeDirPattern, iRODS_handle->zone, user_name);
+    finished_info.info.session.home_dir = globus_common_create_string(homeDirPattern, iRODS_handle->zone, iRODS_handle->user);
     free(user_name);
 
     globus_gridftp_server_operation_finished(op, GLOBUS_SUCCESS, &finished_info);
