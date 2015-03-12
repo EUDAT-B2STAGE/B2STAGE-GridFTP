@@ -47,23 +47,55 @@ endif()
 if (DEFINED ENV{FLAVOR})
     message("FLAVOR is defined as $ENV{FLAVOR}")
     set(dsi_library_name globus_gridftp_server_iRODS_$ENV{FLAVOR})
+    set(gridmap_callout_library_name gridmap_iRODS_callout_$ENV{FLAVOR})
+    set(gridmap_callout_library_LINK_FLAGS "-lglobus_gridmap_callout_error_$ENV{FLAVOR}")
 else()
     message( WARNING "FLAVOR is NOT defined!" )
     set(dsi_library_name globus_gridftp_server_iRODS)
+    set(gridmap_callout_library_name gridmap_iRODS_callout)
+    set(gridmap_callout_library_LINK_FLAGS "-lglobus_gridmap_callout_error")
 endif()
 
 if (NOT DEFINED ENV{DEST_LIB_DIR})
     set(ENV{DEST_LIB_DIR} "$ENV{GLOBUS_LOCATION}/lib")
+    # Note: this may have to be lib64 on 64-bit platforms.
 endif()
 message("DEST_LIB_DIR is defined as $ENV{DEST_LIB_DIR}")
+
+if (NOT DEFINED ENV{DEST_ETC_DIR})
+    if ($ENV{GLOBUS_LOCATION} STREQUAL "/usr")
+        set(ENV{DEST_ETC_DIR} "/etc/grid-security")
+    else()
+        set(ENV{DEST_ETC_DIR} "$ENV{GLOBUS_LOCATION}/etc")
+    endif()
+endif()
+message("DEST_ETC_DIR is defined as $ENV{DEST_ETC_DIR}")
+
+if (NOT DEFINED ENV{DEST_BIN_DIR})
+    set(ENV{DEST_BIN_DIR} "$ENV{GLOBUS_LOCATION}/bin")
+endif()
+message("DEST_BIN_DIR is defined as $ENV{DEST_BIN_DIR}")
 #################################
 
 message("DSI library name will be: ${dsi_library_name}")
+message("Gridmap callout library name will be: ${gridmap_callout_library_name}")
 
 add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c)
+add_library(${gridmap_callout_library_name} SHARED gridmap_iRODS_callout.c libirodsmap.c)
 
-set_target_properties( ${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
-target_link_libraries (${dsi_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+set_target_properties(${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
+target_link_libraries(${dsi_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+
+set_target_properties(${gridmap_callout_library_name} PROPERTIES LINK_FLAGS ${gridmap_callout_library_LINK_FLAGS} VERSION ${GENERIC_LIB_VERSION} )
+target_link_libraries(${gridmap_callout_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+
+set(gridmap_callout_conf_name gridmap_iRODS_callout.conf)
+
+set(testirodsmap_exe "testirodsmap")
+set(testirodsmap_exe_LINK_FLAGS "-ldl -lglobus_gss_assist -lstdc++")
+add_executable(${testirodsmap_exe} testirodsmap.c libirodsmap.c)
+set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
+target_link_libraries(${testirodsmap_exe} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
 
 set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++")
 
@@ -81,5 +113,8 @@ $ENV{GLOBUS_LOCATION}/lib/globus/include
 $ENV{GLOBUS_LOCATION}/lib64/globus/include)
 
 add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
-install(TARGETS ${dsi_library_name} DESTINATION $ENV{DEST_LIB_DIR})
+install(TARGETS ${dsi_library_name} ${gridmap_callout_library_name} DESTINATION $ENV{DEST_LIB_DIR})
+install(TARGETS ${testirodsmap_exe} DESTINATION $ENV{DEST_BIN_DIR})
+configure_file(${gridmap_callout_conf_name}.in ${gridmap_callout_conf_name})
+install(FILES ${gridmap_callout_conf_name} DESTINATION $ENV{DEST_ETC_DIR})
 

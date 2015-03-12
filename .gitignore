@@ -5,5 +5,7 @@ cmake_install.cmake
 install_manifest.txt
 *.so
 *.so.*
+testirodsmap
+gridmap_iRODS_callout.conf
 .cproject
 .project

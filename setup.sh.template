@@ -11,5 +11,11 @@ export IRODS_PATH=""          #path to the iRODS installation
 export DEST_LIB_DIR=""        #(optional) path to the folder in which the library will be copied
                               #such as ${GLOBUS_LOCATION}/lib64
 
+export DEST_BIN_DIR=""        #(optional) path to the folder in which binary executables (auxilliary tools) will be copied
+                              #such as ${GLOBUS_LOCATION}/lib64
+
+export DEST_ETC_DIR=""        #(optional) path to the folder in which configuration files will be copied
+                              #such as ${GLOBUS_LOCATION}/lib64
+
 export RESOURCE_MAP_PATH=""   #(optional) path to the folder containing the 
                               #"irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
