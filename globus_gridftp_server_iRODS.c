@@ -46,6 +46,9 @@
 /* name of environment variable to check for the homeDirPattern */
 #define HOMEDIR_PATTERN "homeDirPattern"
 
+/* if present, connect as the admin account stored in rodsEnv and not as the user */
+#define IRODS_CONNECT_AS_ADMIN "irodsConnectAsAdmin"
+
 static int                              iRODS_l_dev_wrapper = 10;
 struct iRODS_Resource
 {
@@ -177,7 +180,8 @@ iRODS_getUserName(
         }
         fclose ( file );
     } 
-    return iRODS_user_name; 
+    // the username is a string on the stack, return a copy (if it's not NULL)
+    return iRODS_user_name == NULL ? NULL : strdup(iRODS_user_name);
 }
 
 
@@ -266,7 +270,6 @@ iRODS_l_stat1(
     }
     else
     {
-        char sizeStr[NAME_LEN];
         dataObjInp_t dataObjInp; 
         rodsObjStat_t *rodsObjStatOut = NULL; 
         bzero (&dataObjInp, sizeof (dataObjInp)); 
@@ -583,32 +586,44 @@ globus_l_gfs_iRODS_start(
         goto rodsenv_error; 
     }
     
-    iRODS_handle->hostname = myRodsEnv.rodsHost;
+    // myRodsEnv is a structure on the stack, we must make explicit string copies
+    iRODS_handle->hostname = strdup(myRodsEnv.rodsHost);
     iRODS_handle->port = myRodsEnv.rodsPort;
-    iRODS_handle->zone = myRodsEnv.rodsZone;
+    iRODS_handle->zone = strdup(myRodsEnv.rodsZone);
     iRODS_handle->user = iRODS_getUserName(session_info->subject); //iRODS usernmae
     user_name = strdup(session_info->username); //Globus user name
     
     if (iRODS_handle->user == NULL)
     {
-        iRODS_handle->user = session_info->username;
+        iRODS_handle->user = strdup(session_info->username);
     }
 
     //Get zone from username if it contains "#"
     char delims[] = "#";
     char *token = NULL;
-    token = strtok( iRODS_handle->user, delims );
+    // strtok modifies the input string, so we instead pass it a copy
+    char *username_to_parse = strdup(iRODS_handle->user);
+    token = strtok( username_to_parse, delims );
     if (token != NULL ) {
         // Second token is the zone
-        token = strtok( NULL, delims );
-        if ( token != NULL ) {
-            iRODS_handle->zone = token;
+        char *token2 = strtok( NULL, delims );
+        if ( token2 != NULL ) {
+            if (iRODS_handle->zone != NULL) free(iRODS_handle->zone);
+            iRODS_handle->zone = strdup(token2);
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
+            if (iRODS_handle->user != NULL) free(iRODS_handle->user);
+            iRODS_handle->user = strdup(token);
         }
     }
+    free(username_to_parse);
 
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
-    iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
+    if (getenv(IRODS_CONNECT_AS_ADMIN)!=NULL) {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
+        iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
+    } else {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
+        iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
+    }
     if (iRODS_handle->conn == NULL) {
         tmp_str = globus_common_create_string("rcConnect failed::\n  '%s'. Host: '%s', Port: '%i', UserName '%s', Zone '%s'\n",errMsg.msg, iRODS_handle->hostname,
         iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
@@ -627,7 +642,7 @@ globus_l_gfs_iRODS_start(
 
     homeDirPattern = getenv(HOMEDIR_PATTERN);
     if (homeDirPattern == NULL) { homeDirPattern = DEFAULT_HOMEDIR_PATTERN; }
-    finished_info.info.session.home_dir = globus_common_create_string(homeDirPattern, iRODS_handle->zone, user_name);
+    finished_info.info.session.home_dir = globus_common_create_string(homeDirPattern, iRODS_handle->zone, iRODS_handle->user);
     free(user_name);
 
     globus_gridftp_server_operation_finished(op, GLOBUS_SUCCESS, &finished_info);
@@ -655,12 +670,15 @@ globus_l_gfs_iRODS_destroy(
 {
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
 
-    iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
-    globus_mutex_destroy(&iRODS_handle->mutex);
-    globus_fifo_destroy(&iRODS_handle->rh_q);
-    iRODS_disconnect(iRODS_handle->conn);
+    if (user_arg != NULL) {
 
-    globus_free(iRODS_handle);
+		iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
+		globus_mutex_destroy(&iRODS_handle->mutex);
+		globus_fifo_destroy(&iRODS_handle->rh_q);
+		iRODS_disconnect(iRODS_handle->conn);
+
+		globus_free(iRODS_handle);
+    };
 }
 
 /*************************************************************************
