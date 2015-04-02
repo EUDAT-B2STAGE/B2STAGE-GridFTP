@@ -216,7 +216,7 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
 
 * To activate the module, set the '$GSI_AUTH_CONF' environment variable in '/etc/gridftp.conf' to point to the configuration file - already created as '$DEST_ETC_DIR/gridmap_iRODS_callout.conf'.
 
-        $GSI_AUTH_CONF /etc/grid-security/gridmap_iRODS_callout.conf
+        $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
 
 * Note that in order for this module to work, the server certificate DN must be authorized to connect as a rodsAdmin user (e.g., the 'rods' user).
 
