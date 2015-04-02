@@ -2,6 +2,14 @@
 ***** GridFTP iRODS DSI change log *****
 ****************************************
 
+Release 1.6.6 (2015-04-02):
+* Added feature that would make the DSI module authenticate as the rods admin user 
+  but operate under the privileges of the target user.
+  
+* Added a Globus gridmap callout module to map subject DNs to iRODS user names based 
+  on the existing mappings in iRODS. This feature eliminates the need for a local 
+  grid map file - all user mappings can be done through  the callout function.
+
 Release 1.6.5 (2015-02-09):
 * Listing: avoid duplicate files for multiple replicas
 * Listing: display timestamps also for collections
