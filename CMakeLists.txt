@@ -23,7 +23,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 project (iRODS_DSI C)
-set(GENERIC_LIB_VERSION "1.6.3")
+set(GENERIC_LIB_VERSION "1.6.6")
 
 ##### Check ENV variables ######
 if (DEFINED ENV{GLOBUS_LOCATION})
