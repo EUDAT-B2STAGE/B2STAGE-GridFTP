@@ -9,7 +9,6 @@
  */
 
 #include "rodsClient.h"
-//#include "rodsGenQueryNames.h"
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
