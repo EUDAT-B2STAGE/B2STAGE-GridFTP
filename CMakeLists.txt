@@ -34,6 +34,28 @@ endif()
 
 if (DEFINED ENV{IRODS_PATH})
     message("IRODS_PATH is defined as $ENV{IRODS_PATH}")
+    if ($ENV{IRODS_PATH} STREQUAL "/usr")
+        add_definitions(-DIRODS_HEADER_HPP)
+        set(irods_include_path_list "$ENV{IRODS_PATH}/include/irods")
+        set(irods_link_obj_path "$ENV{IRODS_PATH}/lib/libRodsAPIs.a"
+                "-lrt"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libjansson.a"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_chrono.a"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_filesystem.a"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_regex.a"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_system.a"
+                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_thread.a")
+    else()
+        set(irods_include_path_list "$ENV{IRODS_PATH}/lib/api/include"
+                "$ENV{IRODS_PATH}/lib/core/include"
+                "$ENV{IRODS_PATH}/server/icat/include"
+                "$ENV{IRODS_PATH}/lib/md5/include/"
+                "$ENV{IRODS_PATH}/lib/sha1/include/"
+                "$ENV{IRODS_PATH}/server/core/include/"
+                "$ENV{IRODS_PATH}/server/drivers/include/"
+                "$ENV{IRODS_PATH}/server/re/include/")
+        set(irods_link_obj_path "$ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a")
+    endif()
 else()
     message( FATAL_ERROR "IRODS_PATH is NOT defined, CMake will exit." )
 endif()
@@ -84,10 +106,10 @@ add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c)
 add_library(${gridmap_callout_library_name} SHARED gridmap_iRODS_callout.c libirodsmap.c)
 
 set_target_properties(${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
-target_link_libraries(${dsi_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+target_link_libraries(${dsi_library_name} ${irods_link_obj_path})
 
 set_target_properties(${gridmap_callout_library_name} PROPERTIES LINK_FLAGS ${gridmap_callout_library_LINK_FLAGS} VERSION ${GENERIC_LIB_VERSION} )
-target_link_libraries(${gridmap_callout_library_name} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+target_link_libraries(${gridmap_callout_library_name} ${irods_link_obj_path})
 
 set(gridmap_callout_conf_name gridmap_iRODS_callout.conf)
 
@@ -95,22 +117,17 @@ set(testirodsmap_exe "testirodsmap")
 set(testirodsmap_exe_LINK_FLAGS "-ldl -lglobus_gss_assist -lstdc++")
 add_executable(${testirodsmap_exe} testirodsmap.c libirodsmap.c)
 set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
-target_link_libraries(${testirodsmap_exe} $ENV{IRODS_PATH}/lib/core/obj/libRodsAPIs.a)
+target_link_libraries(${testirodsmap_exe} ${irods_link_obj_path})
 
 set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++")
 
-include_directories($ENV{IRODS_PATH}/lib/api/include  
-$ENV{IRODS_PATH}/lib/core/include
-$ENV{IRODS_PATH}/server/icat/include 
-$ENV{IRODS_PATH}/lib/md5/include/ 
-$ENV{IRODS_PATH}/lib/sha1/include/
-$ENV{IRODS_PATH}/server/core/include/ 
-$ENV{IRODS_PATH}/server/drivers/include/ 
-$ENV{IRODS_PATH}/server/re/include/ 
-$ENV{GLOBUS_LOCATION}/include/globus 
-$ENV{GLOBUS_LOCATION}/include/gcc64pthr
-$ENV{GLOBUS_LOCATION}/lib/globus/include
-$ENV{GLOBUS_LOCATION}/lib64/globus/include)
+include_directories(${irods_include_path_list})
+include_directories($ENV{GLOBUS_LOCATION}/include/globus
+        $ENV{GLOBUS_LOCATION}/lib/globus/include
+        $ENV{GLOBUS_LOCATION}/lib64/globus/include)
+if (DEFINED ENV{FLAVOR})
+    include_directories($ENV{GLOBUS_LOCATION}/include/ENV{FLAVOR})
+endif()
 
 add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
 install(TARGETS ${dsi_library_name} ${gridmap_callout_library_name} DESTINATION $ENV{DEST_LIB_DIR})
