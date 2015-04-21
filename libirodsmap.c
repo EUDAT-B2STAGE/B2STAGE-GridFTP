@@ -32,9 +32,10 @@ int libirodsmap_connect(rcComm_t ** rcComm_out) {
         goto connect_error;
     };
 
+    libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: attempting rcConnect to %s:%d\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
     rcComm = rcConnect(myRodsEnv.rodsHost, myRodsEnv.rodsPort, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, 0, &errMsg);
     if (rcComm == NULL) {
-        libirodsmap_log(IRODSMAP_LOG_ERR, "libirodsmap_connect: rcConnect failed ignore %s\n", errMsg.msg, 0);
+        libirodsmap_log(IRODSMAP_LOG_ERR, "libirodsmap_connect: rcConnect failed (%s)\n", errMsg.msg, 0);
         goto connect_error;
     };
     libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: connected to iRODS server (%s:%d)\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
