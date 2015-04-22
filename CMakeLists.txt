@@ -22,7 +22,7 @@
 ###############################################################################
 
 cmake_minimum_required (VERSION 2.8)
-project (iRODS_DSI C)
+project (iRODS_DSI C CXX)
 set(GENERIC_LIB_VERSION "1.6.6")
 
 ##### Check ENV variables ######
@@ -106,9 +106,11 @@ add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c)
 add_library(${gridmap_callout_library_name} SHARED gridmap_iRODS_callout.c libirodsmap.c)
 
 set_target_properties(${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
+set_target_properties(${dsi_library_name} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${dsi_library_name} ${irods_link_obj_path})
 
 set_target_properties(${gridmap_callout_library_name} PROPERTIES LINK_FLAGS ${gridmap_callout_library_LINK_FLAGS} VERSION ${GENERIC_LIB_VERSION} )
+set_target_properties(${gridmap_callout_library_name} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${gridmap_callout_library_name} ${irods_link_obj_path})
 
 set(gridmap_callout_conf_name gridmap_iRODS_callout.conf)
@@ -116,6 +118,7 @@ set(gridmap_callout_conf_name gridmap_iRODS_callout.conf)
 set(testirodsmap_exe "testirodsmap")
 set(testirodsmap_exe_LINK_FLAGS "-ldl -lglobus_gss_assist -lstdc++")
 add_executable(${testirodsmap_exe} testirodsmap.c libirodsmap.c)
+set_target_properties(${testirodsmap_exe} PROPERTIES LINKER_LANGUAGE CXX)
 set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
 target_link_libraries(${testirodsmap_exe} ${irods_link_obj_path})
 
