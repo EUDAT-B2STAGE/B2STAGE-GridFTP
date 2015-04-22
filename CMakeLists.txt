@@ -37,14 +37,29 @@ if (DEFINED ENV{IRODS_PATH})
     if ($ENV{IRODS_PATH} STREQUAL "/usr")
         add_definitions(-DIRODS_HEADER_HPP)
         set(irods_include_path_list "$ENV{IRODS_PATH}/include/irods")
-        set(irods_link_obj_path "$ENV{IRODS_PATH}/lib/libRodsAPIs.a"
-                "-lrt"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libjansson.a"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_chrono.a"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_filesystem.a"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_regex.a"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_system.a"
-                "$ENV{IRODS_PATH}/lib/irods/externals/libboost_thread.a")
+        if (DEFINED ENV{IRODS_40_COMPAT})
+            set(irods_link_obj_path 
+                    "$ENV{IRODS_PATH}/lib/irods/libirods_client.so"
+                    "$ENV{IRODS_PATH}/lib/irods/libirods_client_api.so"
+                    "-lrt"
+                    "$ENV{IRODS_PATH}/lib/irods/libjansson.a"
+                    "$ENV{IRODS_PATH}/lib/irods/libboost_filesystem.a"
+                    "$ENV{IRODS_PATH}/lib/irods/libboost_regex.a"
+                    "$ENV{IRODS_PATH}/lib/irods/libboost_system.a"
+                    "$ENV{IRODS_PATH}/lib/irods/libboost_thread.a")
+        else()
+            set(irods_link_obj_path 
+                    "$ENV{IRODS_PATH}/lib/libirods_client.so"
+                    "$ENV{IRODS_PATH}/lib/libirods_client_api.so"
+                    "-lrt"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libjansson.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_chrono.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_filesystem.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_program_options.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_regex.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_system.a"
+                    "$ENV{IRODS_PATH}/lib/irods/externals/libboost_thread.a")
+        endif()
     else()
         set(irods_include_path_list "$ENV{IRODS_PATH}/lib/api/include"
                 "$ENV{IRODS_PATH}/lib/core/include"
