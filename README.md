@@ -99,8 +99,9 @@ server package without recompiling it.
       * make clean && make
 
    The solution 'a' has the advantage of woorking even if you later recompile 
-   iRODS again. The solution 'b' is the same as solution 'a', but using irodssetup 
-   instead of make. The solution 'c' is faster to be implemented. 
+   iRODS again. The solution 'b' is the same as solution 'a', but using
+   irodssetup instead of make.  That makes the changes persist even after
+   irodssetup is re-run. The solution 'c' is faster to be implemented. 
 
 4) Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
