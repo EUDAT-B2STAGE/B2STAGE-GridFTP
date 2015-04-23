@@ -226,11 +226,26 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
   being mapped as a single argument and may for example add a mapping to an
   existing account, or create a new account.
 
-  To enable this feature, set the '$irodsDnCommand' environment variable in '/etc/gridftp.conf' to the name of the command to execute.  On the iRODS server, the command should be installed in '$IRODS_HOME/server/bin/cmd/'.  For example, to invoke a script called 'createUser', add:
+  To enable this feature, set the '$irodsDnCommand' environment variable in
+  '/etc/gridftp.conf' to the name of the command to execute.  On the iRODS
+  server, the command should be installed in '$IRODS_HOME/server/bin/cmd/'.
+  For example, to invoke a script called 'createUser', add:
 
         $irodsDnCommand "createUser"
 
-* There is also a command line utility to test the mapping lookups (and script execution) that would otherwise be done by the gridmap module.  This utility command gets installed into '$DEST_BIN_DIR/testirodsmap' and should be invoked with the DN as a single argument.  The command would need to see the same environment variables as the gridmap module loaded into the GridFTP server - specifically, '$irodsEnvFile' pointing to the iRODS  environment and '$irodsDnCommand' setting the command to invoke if no mapping is found.  The 'testirodsmap' command also needs to have access to the server host certificate - and find it either through the default mechanisms used by Globus GSI or by explicitly setting the 'X509_USER_CERT' and 'X509_USER_KEY' environment variables.  (The easiest way is to run the command in the same environment as the Globus GridFTP server, i.e., under the root account).  For example, invoke the command with:
+* There is also a command line utility to test the mapping lookups (and script
+  execution) that would otherwise be done by the gridmap module.  This utility
+  command gets installed into '$DEST_BIN_DIR/testirodsmap' and should be
+  invoked with the DN as a single argument.  The command would need to see the
+  same environment variables as the gridmap module loaded into the GridFTP
+  server - specifically, '$irodsEnvFile' pointing to the iRODS  environment and
+  '$irodsDnCommand' setting the command to invoke if no mapping is found.  The
+  'testirodsmap' command also needs to have access to the server host
+  certificate - and find it either through the default mechanisms used by
+  Globus GSI or by explicitly setting the 'X509_USER_CERT' and 'X509_USER_KEY'
+  environment variables.  (The easiest way is to run the command in the same
+  environment as the Globus GridFTP server, i.e., under the root account).  For
+  example, invoke the command with:
 
         export irodsDnCommand=createUser 
         export irodsEnvFile=/path/to/.irodsEnv
