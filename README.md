@@ -251,6 +251,24 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
         export irodsEnvFile=/path/to/.irodsEnv
         $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
 
+4) When deploying with iRODS 4, it is necessary to preload the DSI library into
+   the GridFTP server binary, so that the symbols exported by the library are
+   visible.  Otherwise, when iRODS 4 tries loading plugins (including basic
+   network and authentication plugins), the plugins would fail to load (as the
+   plugins are not explicitly declaring a dependency on the runtime symbols).
+
+   To preload the library, you need to set the LD_PRELOAD variable to
+   '$DEST_LIB_DIR/libglobus_gridftp_server_iRODS.so' (or
+   '$DEST_LIB_DIR/libglobus_gridftp_server_iRODS_$FLAVOR.so') in the
+   environment from which the GridFTP server is started (i.e., it is not enough
+   to set it in /etc/gridftp.conf).
+
+   For example, modify (or create) '/etc/sysconfig/globus-gridftp-server' and
+   add the lines:
+
+        LD_PRELOAD="$LD_PRELOAD:/opt/iRODS_DSI/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
+        export LD_PRELOAD
+
 Logrotate
 --------------------------------
 If you use -d ALL as in the example, please, be aware that the log files could 
