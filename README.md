@@ -174,39 +174,40 @@ required):
 Additional configuration
 --------------------------------
 1. If desired, change the default home directory by setting the homeDirPattern
-   environment variable in ````/etc/gridftp.conf````.  The pattern can reference up to
-   two strings with ````%s````, first gets substituted with the zone name, second with
-   the user name.  The default value is ````"/%s/home/%s"````, making the default
-   directory ````/<zone>/home/<username>````.
+   environment variable in ````/etc/gridftp.conf````.  The pattern can
+   reference up to two strings with ````%s````, first gets substituted with the
+   zone name, second with the user name.  The default value is
+   ````"/%s/home/%s"````, making the default directory
+   ````/<zone>/home/<username>````.
 
-Default configuration:
+   Default configuration:
 
        $homeDirPattern "/%s/home/%s"
 
-Example alternative configuration (defaulting to ````/<zone>/home````):
+   Example alternative configuration (defaulting to ````/<zone>/home````):
 
        $homeDirPattern "/%s/home"
 
 2. Optionally, turn on the feature that would make the DSI module authenticate
    as the rods admin user - but operate under the privileges of the target user.
 
-* Grant the GridFTP server access to the rods account:
+   * Grant the GridFTP server access to the rods account:
 
         $ iadmin aua rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
         $ iadmin lua rods
         rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
 
-* Make sure 'irodsUserName' is included in the '/path/to/.irodsEnv' file created above:
+   * Make sure 'irodsUserName' is included in the '/path/to/.irodsEnv' file created above:
 
         irodsUserName rods
 
-* Set the ````$irodsConnectAsAdmin````  environment variable in ````/etc/gridftp.conf```` to a non-empty value:
+   * Set the ````$irodsConnectAsAdmin````  environment variable in ````/etc/gridftp.conf```` to a non-empty value:
 
-        $irodsConnectAsAdmin "rods"
+       $irodsConnectAsAdmin "rods"
 
-  With all of this in place, it is no longer necessary to associate the DN of the server with each individual user - the server can now access user accounts through the rods account.
+   With all of this in place, it is no longer necessary to associate the DN of the server with each individual user - the server can now access user accounts through the rods account.
 
-  NOTE: this feature requires iRODS server at least 3.3 - GSI authentication with a proxy user breaks on iRODS 3.2 and earlier.
+   NOTE: this feature requires iRODS server at least 3.3 - GSI authentication with a proxy user breaks on iRODS 3.2 and earlier.
 
 3. Optionally, use a Globus gridmap callout module to map subject DNs to iRODS
    user names based on the existing mappings in iRODS (in r_user_auth table).
@@ -215,41 +216,43 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
 
    The gridmap callout configuration file gets already created as '$DEST_ETC_DIR/gridmap_iRODS_callout.conf'.
 
-* To activate the module, set the '$GSI_AUTH_CONF' environment variable in '/etc/gridftp.conf' to point to the configuration file - already created as '$DEST_ETC_DIR/gridmap_iRODS_callout.conf'.
+   * To activate the module, set the '$GSI_AUTH_CONF' environment variable in '/etc/gridftp.conf' to point to the configuration file - already created as '$DEST_ETC_DIR/gridmap_iRODS_callout.conf'.
 
-        $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
+       $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
 
-* Note that in order for this module to work, the server certificate DN must be authorized to connect as a rodsAdmin user (e.g., the 'rods' user).
+   * Note that in order for this module to work, the server certificate DN must
+     be authorized to connect as a rodsAdmin user (e.g., the 'rods' user).
 
-* This module also supports invoking an iRODS server-side command with iexec in
-  case the DN does not have a mapping yet.  The command would receive the DN
-  being mapped as a single argument and may for example add a mapping to an
-  existing account, or create a new account.
+   * This module also supports invoking an iRODS server-side command with iexec
+     in case the DN does not have a mapping yet.  The command would receive the
+     DN being mapped as a single argument and may for example add a mapping to
+     an existing account, or create a new account.
 
-  To enable this feature, set the '$irodsDnCommand' environment variable in
-  '/etc/gridftp.conf' to the name of the command to execute.  On the iRODS
-  server, the command should be installed in '$IRODS_HOME/server/bin/cmd/'.
-  For example, to invoke a script called 'createUser', add:
+   To enable this feature, set the '$irodsDnCommand' environment variable in
+   '/etc/gridftp.conf' to the name of the command to execute.  On the iRODS
+   server, the command should be installed in '$IRODS_HOME/server/bin/cmd/'.
+   For example, to invoke a script called 'createUser', add:
 
-        $irodsDnCommand "createUser"
+       $irodsDnCommand "createUser"
 
-* There is also a command line utility to test the mapping lookups (and script
-  execution) that would otherwise be done by the gridmap module.  This utility
-  command gets installed into '$DEST_BIN_DIR/testirodsmap' and should be
-  invoked with the DN as a single argument.  The command would need to see the
-  same environment variables as the gridmap module loaded into the GridFTP
-  server - specifically, '$irodsEnvFile' pointing to the iRODS  environment and
-  '$irodsDnCommand' setting the command to invoke if no mapping is found.  The
-  'testirodsmap' command also needs to have access to the server host
-  certificate - and find it either through the default mechanisms used by
-  Globus GSI or by explicitly setting the 'X509_USER_CERT' and 'X509_USER_KEY'
-  environment variables.  (The easiest way is to run the command in the same
-  environment as the Globus GridFTP server, i.e., under the root account).  For
-  example, invoke the command with:
+   * There is also a command line utility to test the mapping lookups (and
+     script execution) that would otherwise be done by the gridmap module.
+     This utility command gets installed into '$DEST_BIN_DIR/testirodsmap' and
+     should be invoked with the DN as a single argument.  The command would
+     need to see the same environment variables as the gridmap module loaded
+     into the GridFTP server - specifically, '$irodsEnvFile' pointing to the
+     iRODS  environment and '$irodsDnCommand' setting the command to invoke if
+     no mapping is found.  The 'testirodsmap' command also needs to have access
+     to the server host certificate - and find it either through the default
+     mechanisms used by Globus GSI or by explicitly setting the
+     'X509_USER_CERT' and 'X509_USER_KEY' environment variables.  
+     (The easiest way is to run the command in the same environment as the
+     Globus GridFTP server, i.e., under the root account).  For example, invoke
+     the command with:
 
-        export irodsDnCommand=createUser 
-        export irodsEnvFile=/path/to/.irodsEnv
-        $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
+         export irodsDnCommand=createUser 
+         export irodsEnvFile=/path/to/.irodsEnv
+         $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
 
 4. When deploying with iRODS 4, it is necessary to preload the DSI library into
    the GridFTP server binary, so that the symbols exported by the library are
