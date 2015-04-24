@@ -120,7 +120,7 @@ Configure and run
 In order to run the server as an unprivileged user (root privileges are not 
 required):
 
-1) Modify '/etc/gridftp.conf' adding:
+1. Modify '/etc/gridftp.conf' adding:
 
       $GRIDMAP "/path/to/grid-mapfile"  
       $irodsEnvFile "/path/to/.irodsEnv" 
@@ -135,20 +135,20 @@ required):
        irodsAuthScheme 'GSI'
 
 
-2) In /etc/grid-security/grid-mapfile associate the DNs to the irods usernames, 
+2. In /etc/grid-security/grid-mapfile associate the DNs to the irods usernames, 
    for example:
 
    $ grep mrossi /etc/grid-security/grid-mapfile
    "/C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi" mrossi
 
-3) In the iCAT associate the irods usernames to the user DNs as well as to 
+3. In the iCAT associate the irods usernames to the user DNs as well as to 
    the gridftp server DN, for example:
 
    $ iadmin lua | grep mrossi
    mrossi /C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi
    mrossi /C=IT/O=INFN/OU=Host/L=CINECA-SAP/CN=fec03.cineca.it
 
-4) It is possible to specify a policy to manage more than one iRODS resource.
+4. It is possible to specify a policy to manage more than one iRODS resource.
    The DSI module looks for a file called 'irodsresourcemap.conf' (step 1 of the
    Installation paragraph). In that file it is possible to specify which iRODS 
    resource has to be used when creating a file in a particular iRODS path.
@@ -160,7 +160,7 @@ required):
 
    If none of the listed paths is matched, the iRODS default resource is used. 
 
-5) Modify the globus-gridftp-server script in /etc/init.d in order to create log
+5. Modify the globus-gridftp-server script in /etc/init.d in order to create log
    and pid files where the user who is running the server has the required 
    ownership and run the server with:
 
@@ -173,7 +173,7 @@ required):
 
 Additional configuration
 --------------------------------
-1) If desired, change the default home directory by setting the homeDirPattern
+1. If desired, change the default home directory by setting the homeDirPattern
    environment variable in ````/etc/gridftp.conf````.  The pattern can reference up to
    two strings with ````%s````, first gets substituted with the zone name, second with
    the user name.  The default value is ````"/%s/home/%s"````, making the default
@@ -187,7 +187,7 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
 
        $homeDirPattern "/%s/home"
 
-2) Optionally, turn on the feature that would make the DSI module authenticate
+2. Optionally, turn on the feature that would make the DSI module authenticate
    as the rods admin user - but operate under the privileges of the target user.
 
 * Grant the GridFTP server access to the rods account:
@@ -208,7 +208,7 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
 
   NOTE: this feature requires iRODS server at least 3.3 - GSI authentication with a proxy user breaks on iRODS 3.2 and earlier.
 
-3) Optionally, use a Globus gridmap callout module to map subject DNs to iRODS
+3. Optionally, use a Globus gridmap callout module to map subject DNs to iRODS
    user names based on the existing mappings in iRODS (in r_user_auth table).
    Configuring this feature eliminates the need for a local grid map file - all
    user mappings can be done through the callout function.
@@ -251,20 +251,20 @@ Example alternative configuration (defaulting to ````/<zone>/home````):
         export irodsEnvFile=/path/to/.irodsEnv
         $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
 
-4) When deploying with iRODS 4, it is necessary to preload the DSI library into
+4. When deploying with iRODS 4, it is necessary to preload the DSI library into
    the GridFTP server binary, so that the symbols exported by the library are
    visible.  Otherwise, when iRODS 4 tries loading plugins (including basic
    network and authentication plugins), the plugins would fail to load (as the
    plugins are not explicitly declaring a dependency on the runtime symbols).
 
    To preload the library, you need to set the LD_PRELOAD variable to
-   '$DEST_LIB_DIR/libglobus_gridftp_server_iRODS.so' (or
-   '$DEST_LIB_DIR/libglobus_gridftp_server_iRODS_$FLAVOR.so') in the
+   ````$DEST_LIB_DIR/libglobus_gridftp_server_iRODS.so```` (or
+   ````$DEST_LIB_DIR/libglobus_gridftp_server_iRODS_$FLAVOR.so````) in the
    environment from which the GridFTP server is started (i.e., it is not enough
    to set it in /etc/gridftp.conf).
 
-   For example, modify (or create) '/etc/sysconfig/globus-gridftp-server' and
-   add the lines:
+   For example, modify (or create) ````/etc/sysconfig/globus-gridftp-server````
+   and add the lines:
 
         LD_PRELOAD="$LD_PRELOAD:/opt/iRODS_DSI/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
         export LD_PRELOAD
