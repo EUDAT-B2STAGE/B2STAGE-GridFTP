@@ -42,7 +42,7 @@ Installation
 The installation is quite simple: it is possible to use the official gridftp 
 server package without recompiling it.
 
-1) Set the following environment variables (it can be done editing and renaming 
+1. Set the following environment variables (it can be done editing and renaming 
    the "setup.sh.template" file):
 
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
@@ -55,62 +55,66 @@ server package without recompiling it.
    - RESOURCE_MAP_PATH --> (optional) path to the folder containing the 
      "irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
 
-[a] This depends on your globus installation. You will probably not need it. 
-   In case of error, possible flavors are:
-   FLAVOR=gcc64dbg
-   or
-   FLAVOR=gcc64dbgpthr
-   You can access this information with gpt-query. 
-   Anyway, if the flavor is not correct, the error running the server should help.
+   [a] This depends on your globus installation. You will probably not need it. 
+       In case of error, possible flavors are:
+       
+            FLAVOR=gcc64dbg
+            
+       or
+       
+            FLAVOR=gcc64dbgpthr
+            
+       You can access this information with gpt-query. 
+       Anyway, if the flavor is not correct, the error returned when attempting to run the server should help.
 
-2) Run cmake:
+2. Run cmake:
    
-   $ cmake (path to CMakeFile.txt)
+        $ cmake (path to CMakeFile.txt)
 
-3) Compile the module:
+3. Compile the module:
 
-   $ make
+        $ make
 
    An error like:
-   ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
-   relocation R_X86_64_32 against `.bss` can not be used when making a
-   shared object; recompile with -fPIC
+   
+        ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
+        relocation R_X86_64_32 against `.bss` can not be used when making a
+        shared object; recompile with -fPIC
 
    usually happens on x86_64 systems. In order to solve it, recompile iRODS with 
    the mentioned flag, -fPIC. This can be done in three alternative ways:
 
-   a) in ${IRODS_PATH} modify
-      * clients/icommands/Makefile
-      * lib/Makefile
-      * server/Makefile
-      adding the following line:
-      CFLAGS +=  -fPIC
-      * make clean && make
+   a) In ${IRODS_PATH} modify the CFLAGS definition in the Makefiles
+      * Edit ````clients/icommands/Makefile````, ````lib/Makefile````, and ````server/Makefile````, 
+        adding the following line:
+        
+            CFLAGS +=  -fPIC
+          
+      * Run: ````make clean && make````
 
-   b) in ${IRODS_PATH} modify CCFLAGS variable:  
-      * config/irods.config:
-        $CCFLAGS = '-fPIC'; 
-      * config/platform.mk:
-        CCFLAGS=-fPIC
-      * irodssetup
+   b) In ````${IRODS_PATH}```` modify the ````CCFLAGS```` variable:  
+      * In ````config/irods.config````, set: ````$CCFLAGS = '-fPIC';````
+      * In ````config/platform.mk````, set: ````CCFLAGS=-fPIC````
+      * Run: ````irodssetup````
 
-   c) in ${IRODS_PATH}:
-      * export CFLAGS="$CFLAGS -fPIC"
-      * make clean && make
+   c) In ${IRODS_PATH}, run:
+   
+        export CFLAGS="$CFLAGS -fPIC"
+        make clean && make
 
    The solution 'a' has the advantage of woorking even if you later recompile 
    iRODS again. The solution 'b' is the same as solution 'a', but using
    irodssetup instead of make.  That makes the changes persist even after
    irodssetup is re-run. The solution 'c' is faster to be implemented. 
 
-4) Install the module into the GLOBUS_LOCATION. To do this you will need write 
+4. Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
 
-   $ make install 
+        $ make install 
 
    If you have installed the Globus GridFTP Server from packages:
 
-   $ sudo make install
+        $ sudo make install
   
 
 
