@@ -25,7 +25,11 @@
 
 
 #include "globus_gridftp_server.h"
-#include "rodsClient.h"
+#ifdef IRODS_HEADER_HPP
+  #include "rodsClient.hpp"
+#else
+  #include "rodsClient.h"
+#endif
 #include <stdio.h> 
 #include <time.h>
 #include <unistd.h>
@@ -631,8 +635,11 @@ globus_l_gfs_iRODS_start(
         result = GlobusGFSErrorGeneric(err_str); 
         goto connect_error;
     }
-    
+#ifdef IRODS_HEADER_HPP
+    status = clientLogin(iRODS_handle->conn, NULL, NULL);
+#else
     status = clientLogin(iRODS_handle->conn);
+#endif
     if (status != 0) {
         result = globus_l_gfs_iRODS_make_error("\'clientLogin\' failed.", status);
         goto error;

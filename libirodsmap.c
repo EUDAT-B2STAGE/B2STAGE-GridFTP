@@ -8,8 +8,11 @@
  *
  */
 
-#include "rodsClient.h"
-//#include "rodsGenQueryNames.h"
+#ifdef IRODS_HEADER_HPP
+  #include "rodsClient.hpp"
+#else
+  #include "rodsClient.h"
+#endif
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
@@ -29,14 +32,19 @@ int libirodsmap_connect(rcComm_t ** rcComm_out) {
         goto connect_error;
     };
 
+    libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: attempting rcConnect to %s:%d\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
     rcComm = rcConnect(myRodsEnv.rodsHost, myRodsEnv.rodsPort, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, 0, &errMsg);
     if (rcComm == NULL) {
-        libirodsmap_log(IRODSMAP_LOG_ERR, "libirodsmap_connect: rcConnect failed ignore %s\n", errMsg.msg, 0);
+        libirodsmap_log(IRODSMAP_LOG_ERR, "libirodsmap_connect: rcConnect failed (%s)\n", errMsg.msg, 0);
         goto connect_error;
     };
     libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: connected to iRODS server (%s:%d)\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
 
+#ifdef IRODS_HEADER_HPP
+    rc = clientLogin(rcComm, NULL, NULL);
+#else
     rc = clientLogin(rcComm);
+#endif
     if (rc != 0) {
         libirodsmap_log(IRODSMAP_LOG_ERR,"libirodsmap_connect: clientLogin failed: %s%d\n", "", rc);
         goto connect_error;
