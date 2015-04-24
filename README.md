@@ -282,8 +282,13 @@ Additional configuration
    For example, modify (or create) ````/etc/sysconfig/globus-gridftp-server````
    and add the lines:
 
-        LD_PRELOAD="$LD_PRELOAD:/opt/iRODS_DSI/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
+        LD_PRELOAD="$LD_PRELOAD:/usr/lib64/libglobus_gridftp_server.so:/opt/iRODS_DSI/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
         export LD_PRELOAD
+
+   Note: it is necessary to load the GridFTP server library alongside the DSI
+   library (which depends on symbols provided by the GridFTP server library).
+   Otherwise, any command invocation in that environment fails with unresolved
+   symbol errors.
 
 Logrotate
 --------------------------------
