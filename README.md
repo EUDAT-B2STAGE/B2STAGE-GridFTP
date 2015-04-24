@@ -122,31 +122,31 @@ required):
 
 1. Modify '/etc/gridftp.conf' adding:
 
-      $GRIDMAP "/path/to/grid-mapfile"  
-      $irodsEnvFile "/path/to/.irodsEnv" 
-      load_dsi_module iRODS 
-      auth_level 4
+        $GRIDMAP "/path/to/grid-mapfile"  
+        $irodsEnvFile "/path/to/.irodsEnv" 
+        load_dsi_module iRODS 
+        auth_level 4
 
    where '/path/to/.irodsEnv' contains at least the lines:
 
-       irodsHost 'your.irods.server'
-       irodsPort 'port'
-       irodsZone 'zone'
-       irodsAuthScheme 'GSI'
+        irodsHost 'your.irods.server'
+        irodsPort 'port'
+        irodsZone 'zone'
+        irodsAuthScheme 'GSI'
 
 
 2. In /etc/grid-security/grid-mapfile associate the DNs to the irods usernames, 
    for example:
 
-   $ grep mrossi /etc/grid-security/grid-mapfile
-   "/C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi" mrossi
+        $ grep mrossi /etc/grid-security/grid-mapfile
+        "/C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi" mrossi
 
 3. In the iCAT associate the irods usernames to the user DNs as well as to 
    the gridftp server DN, for example:
 
-   $ iadmin lua | grep mrossi
-   mrossi /C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi
-   mrossi /C=IT/O=INFN/OU=Host/L=CINECA-SAP/CN=fec03.cineca.it
+        $ iadmin lua | grep mrossi
+        mrossi /C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi
+        mrossi /C=IT/O=INFN/OU=Host/L=CINECA-SAP/CN=fec03.cineca.it
 
 4. It is possible to specify a policy to manage more than one iRODS resource.
    The DSI module looks for a file called 'irodsresourcemap.conf' (step 1 of the
@@ -154,9 +154,9 @@ required):
    resource has to be used when creating a file in a particular iRODS path.
    For example:
    
-   $ cat irodsResourceMap.conf 
-   /CINECA01/home/cin_staff/rmucci00;resc-repl
-   /CINECA01/home/cin_staff/mrossi;resc-repl
+        $ cat irodsResourceMap.conf 
+        /CINECA01/home/cin_staff/rmucci00;resc-repl
+        /CINECA01/home/cin_staff/mrossi;resc-repl
 
    If none of the listed paths is matched, the iRODS default resource is used. 
 
@@ -164,11 +164,11 @@ required):
    and pid files where the user who is running the server has the required 
    ownership and run the server with:
 
-   $ /etc/init.d/globus-gridftp-server start
+        $ /etc/init.d/globus-gridftp-server start
    
    in alternative you can run the server with: 
    
-   $ /usr/sbin/globus-gridftp-server -S -d ALL -c $WRKDIR/gridftp.conf
+        $ /usr/sbin/globus-gridftp-server -S -d ALL -c $WRKDIR/gridftp.conf
 
 
 Additional configuration
@@ -177,33 +177,32 @@ Additional configuration
    environment variable in ````/etc/gridftp.conf````.  The pattern can
    reference up to two strings with ````%s````, first gets substituted with the
    zone name, second with the user name.  The default value is
-   ````"/%s/home/%s"````, making the default directory
-   ````/<zone>/home/<username>````.
+   ````"/%s/home/%s"````, making the default directory ````/<zone>/home/<username>````.
 
    Default configuration:
 
-       $homeDirPattern "/%s/home/%s"
+        $homeDirPattern "/%s/home/%s"
 
    Example alternative configuration (defaulting to ````/<zone>/home````):
 
-       $homeDirPattern "/%s/home"
+        $homeDirPattern "/%s/home"
 
 2. Optionally, turn on the feature that would make the DSI module authenticate
    as the rods admin user - but operate under the privileges of the target user.
 
    * Grant the GridFTP server access to the rods account:
 
-        $ iadmin aua rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
-        $ iadmin lua rods
-        rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
+            $ iadmin aua rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
+            $ iadmin lua rods
+            rods /C=TW/O=AP/OU=GRID/CN=irodsdev.canterbury.ac.nz
 
    * Make sure 'irodsUserName' is included in the '/path/to/.irodsEnv' file created above:
 
-        irodsUserName rods
+            irodsUserName rods
 
    * Set the ````$irodsConnectAsAdmin````  environment variable in ````/etc/gridftp.conf```` to a non-empty value:
 
-       $irodsConnectAsAdmin "rods"
+            $irodsConnectAsAdmin "rods"
 
    With all of this in place, it is no longer necessary to associate the DN of the server with each individual user - the server can now access user accounts through the rods account.
 
@@ -218,7 +217,7 @@ Additional configuration
 
    * To activate the module, set the '$GSI_AUTH_CONF' environment variable in '/etc/gridftp.conf' to point to the configuration file - already created as '$DEST_ETC_DIR/gridmap_iRODS_callout.conf'.
 
-       $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
+            $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
 
    * Note that in order for this module to work, the server certificate DN must
      be authorized to connect as a rodsAdmin user (e.g., the 'rods' user).
@@ -233,7 +232,7 @@ Additional configuration
    server, the command should be installed in '$IRODS_HOME/server/bin/cmd/'.
    For example, to invoke a script called 'createUser', add:
 
-       $irodsDnCommand "createUser"
+        $irodsDnCommand "createUser"
 
    * There is also a command line utility to test the mapping lookups (and
      script execution) that would otherwise be done by the gridmap module.
@@ -250,9 +249,9 @@ Additional configuration
      Globus GridFTP server, i.e., under the root account).  For example, invoke
      the command with:
 
-         export irodsDnCommand=createUser 
-         export irodsEnvFile=/path/to/.irodsEnv
-         $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
+            export irodsDnCommand=createUser 
+            export irodsEnvFile=/path/to/.irodsEnv
+            $DEST_BIN_DIR/testirodsmap "/C=XX/O=YYY/CN=Example User"
 
 4. When deploying with iRODS 4, it is necessary to preload the DSI library into
    the GridFTP server binary, so that the symbols exported by the library are
