@@ -48,12 +48,22 @@ server package without recompiling it.
    - GLOBUS_LOCATION --> path to the Globus installation (if you have installed
      the Globus GridFTP Server from packages, use '/usr')
    - IRODS_PATH --> path to the iRODS installation
-   - FLAVOR --> (optional) flavors of the Globus packages which are already installed[a] 
-   - DEST_LIB_DIR --> (optional) path to the folder in which the library will be copied
-   - DEST_BIN_DIR --> (optional) path to the folder in which binary executables (auxilliary tools) will be copied
-   - DEST_ETC_DIR --> (optional) path to the folder in which configuration files will be copied
+   - FLAVOR --> (optional) flavors of the Globus packages which are already
+     installed[a] 
+   - DEST_LIB_DIR --> (optional) path to the folder in which the library will
+     be copied
+   - DEST_BIN_DIR --> (optional) path to the folder in which binary executables
+     (auxilliary tools) will be copied
+   - DEST_ETC_DIR --> (optional) path to the folder in which configuration
+     files will be copied
    - RESOURCE_MAP_PATH --> (optional) path to the folder containing the 
      "irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
+   - IRODS_40_COMPAT --> (optional) Use iRODS 4.0.x compatible library file
+     locations.  (Use for iRODS 4.0.x only, not needed for iRODS 4.1.+).
+
+   Note: comment out any variables not set (as leaving them set to a blank
+   value would prevent CMake from constructing correct default values for
+   variables that are optional).
 
    [a] This depends on your globus installation. You will probably not need it. 
        In case of error, possible flavors are:
