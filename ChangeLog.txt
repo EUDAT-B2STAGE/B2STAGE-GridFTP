@@ -1,6 +1,8 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+Release 1.7 (2015-05-04):
+* Compatible with iRODS 3, 4.03 and 4.1
 
 Release 1.6.6 (2015-04-02):
 * Added feature that would make the DSI module authenticate as the rods admin user 
