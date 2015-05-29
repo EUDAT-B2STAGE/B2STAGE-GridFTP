@@ -120,12 +120,12 @@ server package without recompiling it.
 4. Install the module into the GLOBUS_LOCATION. To do this you will need write 
    permission for that directory:
 
-        $ make install 
+        $ make install
+        
+   Alternatively you can add the path to the library libglobus_gridftp_server_iRODS.so
+   to the env variable $LD_LIBRARY_PATH in the same environment where you start the 
+   GridFTP server.
 
-   If you have installed the Globus GridFTP Server from packages:
-
-        $ sudo make install
-  
 
 
 Configure and run
