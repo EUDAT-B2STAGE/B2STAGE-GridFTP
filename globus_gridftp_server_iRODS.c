@@ -106,7 +106,7 @@ typedef struct globus_l_iRODS_read_ahead_s
     struct globus_l_gfs_iRODS_handle_s *  iRODS_handle;
     globus_off_t                        offset;
     globus_size_t                       length;
-    globus_byte_t                       buffer[1];
+    globus_byte_t *                     buffer;
 } globus_l_iRODS_read_ahead_t;
 
 static
@@ -862,14 +862,14 @@ globus_l_gfs_iRODS_command(
             break;
     }
 
-    if(status != 0)
+    if(status < 0)
     {
         error_str = globus_common_create_string("iRODS error: status = %d", status);
         result = GlobusGFSErrorGeneric(error_str);
 
         goto error;
     }
-
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum: outChksum=%s\n", outChksum);
     globus_gridftp_server_finished_command(op, GLOBUS_SUCCESS, outChksum);
 
     free(collection);
@@ -1458,10 +1458,6 @@ globus_l_gfs_iRODS_read_ahead_next(
 
     bytesBuf_t dataObjReadOutBBuf;
     bzero (&dataObjReadOutBBuf, sizeof (dataObjReadOutBBuf));
-    
-    //bytesBuf_t DataObjReadOutBBuf;
-    dataObjReadOutBBuf.buf = rh->buffer;
-    dataObjReadOutBBuf.len = read_length;//rh->length;
 
     rh->length = rcDataObjRead (iRODS_handle->conn, &dataObjReadInp, &dataObjReadOutBBuf);
     if(rh->length <= 0)
@@ -1470,6 +1466,7 @@ globus_l_gfs_iRODS_read_ahead_next(
         goto attempt_error;
     }
 
+    rh->buffer =  (globus_byte_t *)dataObjReadOutBBuf.buf;
     iRODS_handle->blk_offset += rh->length;
     if(iRODS_handle->blk_length != -1)
     {
