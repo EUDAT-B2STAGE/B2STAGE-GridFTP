@@ -1,6 +1,10 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+
+Release 1.7.1 (2015-05-29):
+* Solved possible bug reading object from iRODS: corrupted object retrieved
+
 Release 1.7 (2015-05-04):
 * Compatible with iRODS 3, 4.03 and 4.1
 
