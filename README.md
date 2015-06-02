@@ -290,6 +290,14 @@ Additional configuration
    Otherwise, any command invocation in that environment fails with unresolved
    symbol errors.
 
+   Also, in order for GridFTP CKSM (checksum) command to work (and interoperate
+   with Globus.org), it is necessary to configure iRODS to use MD5 checksums
+   (iRODS 4 otherwise defaults to SHA-256).  Edit ````/etc/irods/server.config````
+   and set:
+
+        default_hash_scheme MD5
+
+
 Logrotate
 --------------------------------
 If you use -d ALL as in the example, please, be aware that the log files could 
