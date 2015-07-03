@@ -1,6 +1,13 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+
+Release 1.7.2 (2015-07-03):
+* Solved bug writing object to iRODS if transfer is restarted: corrupted object writed
+
+Release 1.7.1 (2015-05-29):
+* Solved possible bug reading object from iRODS: corrupted object retrieved
+
 Release 1.7 (2015-05-04):
 * Compatible with iRODS 3, 4.03 and 4.1
 
