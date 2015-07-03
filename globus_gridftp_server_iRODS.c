@@ -951,7 +951,7 @@ globus_l_gfs_iRODS_recv(
 
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-    dataObjInp.openFlags = O_TRUNC | O_WRONLY;
+    dataObjInp.openFlags = flags; 
     if (iRODS_Resource_struct.resource != NULL)
     {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
