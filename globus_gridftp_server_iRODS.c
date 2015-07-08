@@ -848,8 +848,10 @@ globus_l_gfs_iRODS_command(
                dataObjInp_t dataObjInp;
                bzero (&dataObjInp, sizeof (dataObjInp));
                rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-               addKeyVal (&dataObjInp.condInput, FORCE_CHKSUM_KW, "");
-               globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum: collection=%s\n", collection);
+	       //The VERIFY_CHKSUM_KW flag seems useless: checksum is retrieved if exists or calculated
+	       //if it doesn't exist
+               //addKeyVal (&dataObjInp.condInput, VERIFY_CHKSUM_KW, "");
+               globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum of collection=%s\n", collection);
                status = rcDataObjChksum (iRODS_handle->conn, &dataObjInp, &outChksum);
            }
            break;
