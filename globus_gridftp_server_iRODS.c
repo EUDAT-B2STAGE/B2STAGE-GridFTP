@@ -483,6 +483,7 @@ typedef struct globus_l_gfs_iRODS_handle_s
     int                                 port;
     
     char *                              zone;
+    char *                              defResource;
     char *                              user;
     char *                              domain; 
     
@@ -600,6 +601,10 @@ globus_l_gfs_iRODS_start(
     iRODS_handle->hostname = strdup(myRodsEnv.rodsHost);
     iRODS_handle->port = myRodsEnv.rodsPort;
     iRODS_handle->zone = strdup(myRodsEnv.rodsZone);
+    // copy also the default resource if it is set
+    if (strlen(myRodsEnv.rodsDefResource) > 0 ) {
+        iRODS_handle->defResource = strdup(myRodsEnv.rodsDefResource);
+    };
     iRODS_handle->user = iRODS_getUserName(session_info->subject); //iRODS usernmae
     user_name = strdup(session_info->username); //Globus user name
     
@@ -960,10 +965,13 @@ globus_l_gfs_iRODS_recv(
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
     dataObjInp.openFlags = flags; 
+    // give priority to explicit resource mapping, otherwise use default resource if set
     if (iRODS_Resource_struct.resource != NULL)
     {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
-    }
+    } else if (iRODS_handle->defResource != NULL ) {
+        addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
+    };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
     if (iRODS_handle->fd >= 0) {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Open existing object: %s.\n", collection);
@@ -976,10 +984,14 @@ globus_l_gfs_iRODS_recv(
         rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
         dataObjInp.dataSize = 0;
         addKeyVal (&dataObjInp.condInput, FORCE_FLAG_KW, "");
+        // give priority to explicit resource mapping, otherwise use default resource if set
         if (iRODS_Resource_struct.resource != NULL)
         {
             addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_Resource_struct.resource);
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with resource: %s\n", iRODS_Resource_struct.resource);
+        } else if (iRODS_handle->defResource != NULL ) {
+            addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_handle->defResource);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with default resource: %s\n", iRODS_handle->defResource);
         }
         iRODS_handle->fd = rcDataObjCreate (iRODS_handle->conn, &dataObjInp);
         if (iRODS_handle->fd < 0) {
@@ -1078,6 +1090,11 @@ globus_l_gfs_iRODS_send(
     
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
+    // if we have a default resource set, open the file from this resource
+    if (iRODS_handle->defResource != NULL ) {
+        addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Retrieving file from default resource: %s\n", iRODS_handle->defResource);
+    };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
     
     if (iRODS_handle->fd < 0) {
