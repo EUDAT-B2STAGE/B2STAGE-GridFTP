@@ -54,6 +54,7 @@
 #define IRODS_CONNECT_AS_ADMIN "irodsConnectAsAdmin"
 
 static int                              iRODS_l_dev_wrapper = 10;
+/* structure and global variable for holding pointer to the (last) selected resource mapping */
 struct iRODS_Resource
 {
       char * path;
@@ -221,7 +222,12 @@ iRODS_getResource(
                 }
                 globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: Resource found in %s: destinationPath = %s, iRODS resource = %s.\n", filename, destinationPath, iRODS_res);
                 
+                /* store the mapping in the global pointers in iRODS_Resource_struct - duplicating the string value.
+                 * Free any previously stored (duplicated) string pointer first!
+                 */
+                if (iRODS_Resource_struct.resource != NULL) { free(iRODS_Resource_struct.resource); };
                 iRODS_Resource_struct.resource =  strdup(iRODS_res); 
+                if (iRODS_Resource_struct.path != NULL) { free(iRODS_Resource_struct.path); };
                 iRODS_Resource_struct.path = strdup(path_Read);
                 break;
             }
