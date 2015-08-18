@@ -1080,6 +1080,20 @@ globus_l_gfs_iRODS_send(
         goto alloc_error;
     }
 
+
+    //Get iRODS resource from destination path
+    if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
+    {
+        if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+        {
+            iRODS_getResource(transfer_info->pathname);
+        }
+    }
+    else
+    {
+        iRODS_getResource(transfer_info->pathname);
+    }
+
     collection = strdup(transfer_info->pathname);
     if(collection == NULL)
     {
@@ -1090,8 +1104,13 @@ globus_l_gfs_iRODS_send(
     
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
-    // if we have a default resource set, open the file from this resource
-    if (iRODS_handle->defResource != NULL ) {
+    // give priority to explicit resource mapping, otherwise use default resource if set
+    if (iRODS_Resource_struct.resource != NULL)
+    {
+        addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Retriving file with resource: %s\n", iRODS_Resource_struct.resource);
+    }
+    else if (iRODS_handle->defResource != NULL ) {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Retrieving file from default resource: %s\n", iRODS_handle->defResource);
     };
