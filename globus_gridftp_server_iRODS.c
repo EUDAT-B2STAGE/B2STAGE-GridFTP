@@ -562,7 +562,6 @@ globus_l_gfs_iRODS_start(
 {
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
     globus_result_t                           result;
-    char *                              tmp_str;
     globus_gfs_finished_info_t          finished_info;
 
     GlobusGFSName(globus_l_gfs_iRODS_start);
@@ -640,9 +639,8 @@ globus_l_gfs_iRODS_start(
         iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
     }
     if (iRODS_handle->conn == NULL) {
-        tmp_str = globus_common_create_string("rcConnect failed::\n  '%s'. Host: '%s', Port: '%i', UserName '%s', Zone '%s'\n",errMsg.msg, iRODS_handle->hostname,
-        iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
-        char *err_str = globus_common_create_string("iRODS \'rcConnect\' failed: %s\n", errMsg.msg);
+        char *err_str = globus_common_create_string("rcConnect failed:: %s Host: '%s', Port: '%i', UserName '%s', Zone '%s'\n",
+                errMsg.msg, iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
         result = GlobusGFSErrorGeneric(err_str); 
         goto connect_error;
     }
