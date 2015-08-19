@@ -203,22 +203,21 @@ Additional configuration
 
 3. Optionally (not recommend), turn off the feature that would make the DSI module authenticate as the rods admin user - but operate under the privileges of the target user.
 
-To do so, remove the line
+    To do so, remove the line
 
         $irodsConnectAsAdmin "rods"
 
-from the /etc/gridftp.conf file.
+    from the /etc/gridftp.conf file.
 
-It is than necessary to associate the DN of the server with each individual user.
-In the iCAT associate the irods usernames to the user DNs as well as to 
-   the gridftp server DN, for example:
+    It is than necessary to associate the DN of the server with each individual user.
+    In the iCAT associate the irods usernames to the user DNs as well as to the gridftp server DN, for example:
 
         $ iadmin lua | grep mrossi
         mrossi /C=IT/O=INFN/OU=Personal Certificate/L=CINECA-SAP/CN=Mario Rossi
         mrossi /C=IT/O=INFN/OU=Host/L=CINECA-SAP/CN=fec03.cineca.it
 
    
-   NOTE: this feature is necessary using an  iRODS server version earlier than 3.3.
+    NOTE: this feature is necessary using an  iRODS server version earlier than 3.3.
 
 
 4. This module supports invoking an iRODS server-side command with iexec
