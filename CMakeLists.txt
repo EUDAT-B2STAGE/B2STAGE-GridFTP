@@ -53,6 +53,8 @@ if (DEFINED ENV{IRODS_PATH})
                     "$ENV{IRODS_PATH}/lib/libirods_client_api.so"
                     "-lrt"
                     "-lpthread"
+                    "-pthread"
+                    "-lssl"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libjansson.a"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libboost_chrono.a"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libboost_filesystem.a"
