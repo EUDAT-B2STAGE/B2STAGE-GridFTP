@@ -30,6 +30,8 @@
 #else
   #include "rodsClient.h"
 #endif
+#include "pid_manager.h"
+#include <string.h>
 #include <stdio.h> 
 #include <time.h>
 #include <unistd.h>
@@ -52,6 +54,9 @@
 
 /* if present, connect as the admin account stored in rodsEnv and not as the user */
 #define IRODS_CONNECT_AS_ADMIN "irodsConnectAsAdmin"
+
+/* If present, use the handle server to resolve PID */
+#define PID_HANDLE_SERVER "pidHandleServer"
 
 static int                              iRODS_l_dev_wrapper = 10;
 /* structure and global variable for holding pointer to the (last) selected resource mapping */
@@ -582,20 +587,28 @@ globus_l_gfs_iRODS_start(
     }
     globus_mutex_init(&iRODS_handle->mutex, NULL);
     globus_fifo_init(&iRODS_handle->rh_q);    
+ 
 
     memset(&finished_info, '\0', sizeof(globus_gfs_finished_info_t));
     finished_info.type = GLOBUS_GFS_OP_SESSION_START;
     finished_info.result = GLOBUS_SUCCESS;
     finished_info.info.session.session_arg = iRODS_handle;
     finished_info.info.session.username = session_info->username;
-    ///finished_info.info.session.home_dir = "/";
     
     status = getRodsEnv(&myRodsEnv);
     if (status < 0) {
         result = globus_l_gfs_iRODS_make_error("\'getRodsEnv\' failed.", status);
         goto rodsenv_error; 
     }
-    
+   
+    //iRODS_handle->ftp_host_id = strdup(session_info->host_id);
+
+    //remove port from ftp hostname
+    //char *p = strchr(iRODS_handle->ftp_host_id, ':'); 
+    //if (p) 
+    //  *p = 0;
+    //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: GridFTP host name: %s\n", iRODS_handle->ftp_host_id);
+
     // myRodsEnv is a structure on the stack, we must make explicit string copies
     iRODS_handle->hostname = strdup(myRodsEnv.rodsHost);
     iRODS_handle->port = myRodsEnv.rodsPort;
@@ -1077,29 +1090,75 @@ globus_l_gfs_iRODS_send(
         result = GlobusGFSErrorGeneric("iRODS DSI must be a default backend module. It cannot be an eret alone");
         goto alloc_error;
     }
-
-
-    //Get iRODS resource from destination path
-    if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
-    {
-        if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
-        {
-            iRODS_getResource(transfer_info->pathname);
-        }
-    }
-    else
-    {
-        iRODS_getResource(transfer_info->pathname);
-    }
-
+ 
     collection = strdup(transfer_info->pathname);
     if(collection == NULL)
     {
         result = GlobusGFSErrorGeneric("iRODS: strdup failed");
         goto alloc_error;
     }
-    iRODS_l_reduce_path(collection);
     
+    char *handle_server;
+    char *URL;
+    handle_server = getenv(PID_HANDLE_SERVER);
+    if (handle_server != NULL) {
+        char* PID = strdup(transfer_info->pathname);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: trying to resolve pid %s with Handle Server: %s\n", PID, handle_server);
+       
+        int res = manage_pid(handle_server, PID, &URL);
+        if (res == 0)
+        { 
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
+            //char *s = strstr(collection, iRODS_handle->ftp_host_id); iRODS_handle->hostname
+            char *s = strstr(collection, iRODS_handle->hostname);
+            //char *s = strstr(URL, "data.repo.cineca.it");
+
+            if(s != NULL) {
+                char *c = strstr(s, "/");
+                collection = strdup(c);
+
+            }
+            else
+            {   
+                // Manage scenario with different GridFTP host (report an error)
+                char *err_str = globus_common_create_string("iRODS DSI: the Handle Server %s returnd an URL ( %s ) which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
+                result = GlobusGFSErrorGeneric(err_str);  
+                goto error;
+            }
+        }
+        else if (res == 1)
+        {
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server could not resolve the PID");
+        }
+        else
+        {
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server retrned the error code: %i\n", res);
+        }
+    }
+
+    //Get iRODS resource from destination path
+    if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
+    {
+        if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+        {
+            iRODS_getResource(collection);
+        }
+    }
+    else
+    {
+        iRODS_getResource(collection);
+    }
+
+    //collection = strdup(transfer_info->pathname);
+    /*if(collection == NULL)
+    {
+        result = GlobusGFSErrorGeneric("iRODS: strdup failed");
+        goto alloc_error;
+    }*/
+    iRODS_l_reduce_path(collection);
+   
+
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retreiving: %s\n", collection); 
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
     // give priority to explicit resource mapping, otherwise use default resource if set
