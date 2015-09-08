@@ -53,6 +53,9 @@ if (DEFINED ENV{IRODS_PATH})
                     "$ENV{IRODS_PATH}/lib/libirods_client_api.so"
                     "-lrt"
                     "-lpthread"
+                    "-pthread"
+                    "-lssl"
+                    "-lcurl"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libjansson.a"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libboost_chrono.a"
                     "$ENV{IRODS_PATH}/lib/irods/externals/libboost_filesystem.a"
@@ -118,7 +121,7 @@ message("DEST_BIN_DIR is defined as $ENV{DEST_BIN_DIR}")
 message("DSI library name will be: ${dsi_library_name}")
 message("Gridmap callout library name will be: ${gridmap_callout_library_name}")
 
-add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c)
+add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c pid_manager.c cJSON.c)
 add_library(${gridmap_callout_library_name} SHARED gridmap_iRODS_callout.c libirodsmap.c)
 
 set_target_properties(${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
@@ -138,7 +141,7 @@ set_target_properties(${testirodsmap_exe} PROPERTIES LINKER_LANGUAGE CXX)
 set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
 target_link_libraries(${testirodsmap_exe} ${irods_link_obj_path})
 
-set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++")
+set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++ -lcurl")
 
 include_directories(${irods_include_path_list})
 include_directories($ENV{GLOBUS_LOCATION}/include/globus
