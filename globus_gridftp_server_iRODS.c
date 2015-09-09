@@ -533,7 +533,7 @@ globus_l_gfs_iRODS_make_error(
   
     errorName = rodsErrorName(status, &errorSubName);
 
-    err_str = globus_common_create_string("iRODS DSI. Error: %s. %s: %s. status: %d.\n", msg, errorName, errorSubName, status);
+    err_str = globus_common_create_string("iRODS DSI. Error: %s. %s: %s, status: %d.\n", msg, errorName, errorSubName, status);
     result = GlobusGFSErrorGeneric(err_str);
     free(err_str);
 
@@ -1070,8 +1070,12 @@ globus_l_gfs_iRODS_send(
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
     globus_result_t                     result;
     char *                              collection;
-    dataObjInp_t                        dataObjInp;    
+
     int                                 i = 0;
+    int                                 res = -1;
+    char *                              handle_server;
+    char *                              URL;
+    dataObjInp_t                        dataObjInp;    
 
     GlobusGFSName(globus_l_gfs_iRODS_send);
 
@@ -1090,14 +1094,12 @@ globus_l_gfs_iRODS_send(
         goto alloc_error;
     }
     
-    char *handle_server;
-    char *URL;
     handle_server = getenv(PID_HANDLE_SERVER);
     if (handle_server != NULL) {
         char* PID = strdup(transfer_info->pathname);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: trying to resolve pid %s with Handle Server: %s\n", PID, handle_server);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
        
-        int res = manage_pid(handle_server, PID, &URL);
+        res = manage_pid(handle_server, PID, &URL);
         if (res == 0)
         { 
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
@@ -1110,18 +1112,18 @@ globus_l_gfs_iRODS_send(
             else
             {   
                 // Manage scenario with a returned URL pointing to a different iRODS host (report an error)
-                char *err_str = globus_common_create_string("iRODS DSI: the Handle Server %s returnd an URL ( %s ) which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
+                char *err_str = globus_common_create_string("iRODS DSI: the Handle Server '%s' returnd the URL '%s' which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
                 result = GlobusGFSErrorGeneric(err_str);  
                 goto error;
             }
         }
         else if (res == 1)
         {
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server could not resolve the PID");
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID with the Handle Server\n");
         }
         else
-        {
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server retrned the error code: %i\n", res);
+        {   
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID. The Handle Server returned the response code: %i\n", res);
         }
     }
 
@@ -1138,32 +1140,41 @@ globus_l_gfs_iRODS_send(
         iRODS_getResource(collection);
     }
 
-    //collection = strdup(transfer_info->pathname);
-    /*if(collection == NULL)
-    {
-        result = GlobusGFSErrorGeneric("iRODS: strdup failed");
-        goto alloc_error;
-    }*/
     iRODS_l_reduce_path(collection);
    
 
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retreiving: %s\n", collection); 
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retreiving '%s'\n", collection); 
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
     // give priority to explicit resource mapping, otherwise use default resource if set
     if (iRODS_Resource_struct.resource != NULL)
     {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retriving file with resource: %s\n", iRODS_Resource_struct.resource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retriving object with resource: %s\n", iRODS_Resource_struct.resource);
     }
     else if (iRODS_handle->defResource != NULL ) {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retrieving file from default resource: %s\n", iRODS_handle->defResource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retrieving object from default resource: %s\n", iRODS_handle->defResource);
     };
+
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
     
     if (iRODS_handle->fd < 0) {
-        result = globus_l_gfs_iRODS_make_error("rcDataObjOpen failed.", iRODS_handle->fd);
+        char *error_str;
+        if (handle_server != NULL)
+            if (res == 0) {
+                error_str = globus_common_create_string("rcDataObjOpen failed opening '%s' (the DSI has succesfully resolved the PID through the Handle Server '%s.)", collection, handle_server);
+            }
+            else
+            {
+		error_str = globus_common_create_string("rcDataObjOpen failed opening '%s' (the DSI has also tryed to manage the path as a PID but the resolution through the Handle Server '%s' failed)", collection, handle_server);
+            }
+        else
+        { 
+            error_str = globus_common_create_string("rcDataObjOpen failed opening '%s'\n", collection);
+        }
+        result = globus_l_gfs_iRODS_make_error(error_str, iRODS_handle->fd);
+        free(error_str);
         goto error;
     }  
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: rcDataObjOpen: %s\n", collection);
@@ -1208,7 +1219,6 @@ globus_l_gfs_iRODS_send(
     }
 
     globus_free(collection);
-
     return;
 
 error:
