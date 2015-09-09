@@ -601,14 +601,6 @@ globus_l_gfs_iRODS_start(
         goto rodsenv_error; 
     }
    
-    //iRODS_handle->ftp_host_id = strdup(session_info->host_id);
-
-    //remove port from ftp hostname
-    //char *p = strchr(iRODS_handle->ftp_host_id, ':'); 
-    //if (p) 
-    //  *p = 0;
-    //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: GridFTP host name: %s\n", iRODS_handle->ftp_host_id);
-
     // myRodsEnv is a structure on the stack, we must make explicit string copies
     iRODS_handle->hostname = strdup(myRodsEnv.rodsHost);
     iRODS_handle->port = myRodsEnv.rodsPort;
@@ -1114,11 +1106,10 @@ globus_l_gfs_iRODS_send(
             if(s != NULL) {
                 char *c = strstr(s, "/");
                 collection = strdup(c);
-
             }
             else
             {   
-                // Manage scenario with different iRODS host (report an error)
+                // Manage scenario with a returned URL pointing to a different iRODS host (report an error)
                 char *err_str = globus_common_create_string("iRODS DSI: the Handle Server %s returnd an URL ( %s ) which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
                 result = GlobusGFSErrorGeneric(err_str);  
                 goto error;
