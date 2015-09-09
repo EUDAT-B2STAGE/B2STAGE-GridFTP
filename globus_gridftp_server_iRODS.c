@@ -152,7 +152,7 @@ iRODS_disconnect(
     rcComm_t *                           conn)
 
 {
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: disconnected.\n");
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: disconnected.\n");
     rcDisconnect(conn);
 }
 
@@ -184,7 +184,7 @@ iRODS_getUserName(
                 {
                     iRODS_user_name[len - 1] = '\0'; //Remove EOF 
                 }
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: User found in irodsUserMap.conf: DN = %s, iRODS user = %s.\n", DN, iRODS_user_name);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: User found in irodsUserMap.conf: DN = %s, iRODS user = %s.\n", DN, iRODS_user_name);
                 break;
             }
         }
@@ -225,7 +225,7 @@ iRODS_getResource(
                 {
                     iRODS_res[len - 1] = '\0'; //Remove EOF 
                 }
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: Resource found in %s: destinationPath = %s, iRODS resource = %s.\n", filename, destinationPath, iRODS_res);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: Resource found in %s: destinationPath = %s, iRODS resource = %s.\n", filename, destinationPath, iRODS_res);
                 
                 /* store the mapping in the global pointers in iRODS_Resource_struct - duplicating the string value.
                  * Free any previously stored (duplicated) string pointer first!
@@ -241,7 +241,7 @@ iRODS_getResource(
     }
     else
     {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: irodsResourceMap.conf not found in %s\n", filename);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: irodsResourceMap.conf not found in %s\n", filename);
     }  
 
 }
@@ -266,7 +266,7 @@ iRODS_l_stat1(
     if (status >= 0)
     {
     
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found collection %s.\n", start_dir);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: found collection %s.\n", start_dir);
         rsrcName = (char*) start_dir;
         memset(stat_out, '\0', sizeof(globus_gfs_stat_t));
         fname = rsrcName ? rsrcName : "(null)";
@@ -292,7 +292,7 @@ iRODS_l_stat1(
         status = rcObjStat (conn, &dataObjInp, &rodsObjStatOut); 
         if (status >= 0) 
         { 
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found data object %s.\n", start_dir);      
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: found data object %s.\n", start_dir);      
             memset(stat_out, '\0', sizeof(globus_gfs_stat_t));
             stat_out->symlink_target = NULL;
             stat_out->name = strdup(start_dir);
@@ -315,7 +315,7 @@ iRODS_l_stat1(
 
     if(status == -808000)
     {
-       globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: object or collection called: %s not found\n", start_dir);
+       globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: object or collection called: %s not found\n", start_dir);
     }
     return status;
 }
@@ -349,7 +349,7 @@ iRODS_l_stat_dir(
     status = rclOpenCollection (conn, start_dir, queryFlags,  &collHandle);
     
     if (status < 0) {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rclOpenCollection of %s error. status = %d", start_dir, status);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rclOpenCollection of %s error. status = %d", start_dir, status);
         return status;
     }
 
@@ -533,7 +533,7 @@ globus_l_gfs_iRODS_make_error(
   
     errorName = rodsErrorName(status, &errorSubName);
 
-    err_str = globus_common_create_string("iRODS Error: %s. %s: %s. status: %d.\n", msg, errorName, errorSubName, status);
+    err_str = globus_common_create_string("iRODS DSI. Error: %s. %s: %s. status: %d.\n", msg, errorName, errorSubName, status);
     result = GlobusGFSErrorGeneric(err_str);
     free(err_str);
 
@@ -582,7 +582,7 @@ globus_l_gfs_iRODS_start(
 
     if(iRODS_handle == NULL)
     {
-        result = GlobusGFSErrorGeneric("iRODS start: malloc failed");
+        result = GlobusGFSErrorGeneric("iRODS DSI start: malloc failed");
         goto error;
     }
     globus_mutex_init(&iRODS_handle->mutex, NULL);
@@ -637,7 +637,7 @@ globus_l_gfs_iRODS_start(
         if ( token2 != NULL ) {
             if (iRODS_handle->zone != NULL) free(iRODS_handle->zone);
             iRODS_handle->zone = strdup(token2);
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: found zone '%s' in user name '%s'\n", iRODS_handle->zone, iRODS_handle->user);
             if (iRODS_handle->user != NULL) free(iRODS_handle->user);
             iRODS_handle->user = strdup(token);
         }
@@ -645,10 +645,10 @@ globus_l_gfs_iRODS_start(
     free(username_to_parse);
 
     if (getenv(IRODS_CONNECT_AS_ADMIN)!=NULL) {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
         iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
     } else {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
         iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
     }
     if (iRODS_handle->conn == NULL) {
@@ -667,7 +667,7 @@ globus_l_gfs_iRODS_start(
         goto error;
     }
 
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: connected.\n");
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: connected.\n");
 
     homeDirPattern = getenv(HOMEDIR_PATTERN);
     if (homeDirPattern == NULL) { homeDirPattern = DEFAULT_HOMEDIR_PATTERN; }
@@ -827,7 +827,7 @@ globus_l_gfs_iRODS_command(
     iRODS_l_reduce_path(collection);
     if(collection == NULL)
     {
-        result = GlobusGFSErrorGeneric("iRODS: strdup failed");
+        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
         goto alloc_error;
     }
 
@@ -838,7 +838,7 @@ globus_l_gfs_iRODS_command(
                 collInp_t collCreateInp;
                 bzero (&collCreateInp, sizeof (collCreateInp));
                 rstrcpy (collCreateInp.collName, collection, MAX_NAME_LEN);
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcCollCreate: collection=%s\n", collection);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcCollCreate: collection=%s\n", collection);
                 status = rcCollCreate (iRODS_handle->conn, &collCreateInp);
             }
             break;
@@ -849,7 +849,7 @@ globus_l_gfs_iRODS_command(
                 bzero (&rmCollInp, sizeof (rmCollInp));
                 rstrcpy (rmCollInp.collName, collection, MAX_NAME_LEN);
                 addKeyVal (&rmCollInp.condInput, FORCE_FLAG_KW, "");
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcRmColl: collection=%s\n", collection);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcRmColl: collection=%s\n", collection);
                 status = rcRmColl (iRODS_handle->conn, &rmCollInp,0);
             }
             break;
@@ -860,7 +860,7 @@ globus_l_gfs_iRODS_command(
                 bzero (&dataObjInp, sizeof (dataObjInp));
                 rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
                 addKeyVal (&dataObjInp.condInput, FORCE_FLAG_KW, "");
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjUnlink: collection=%s\n", collection);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcDataObjUnlink: collection=%s\n", collection);
                 status = rcDataObjUnlink(iRODS_handle->conn, &dataObjInp);
             }
             break;
@@ -873,7 +873,7 @@ globus_l_gfs_iRODS_command(
 	       //The VERIFY_CHKSUM_KW flag seems useless: checksum is retrieved if exists or calculated
 	       //if it doesn't exist
                //addKeyVal (&dataObjInp.condInput, VERIFY_CHKSUM_KW, "");
-               globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum of collection=%s\n", collection);
+               globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcDataObjChksum of collection=%s\n", collection);
                status = rcDataObjChksum (iRODS_handle->conn, &dataObjInp, &outChksum);
            }
            break;
@@ -888,12 +888,12 @@ globus_l_gfs_iRODS_command(
 
     if(status < 0)
     {
-        error_str = globus_common_create_string("iRODS error: status = %d", status);
+        error_str = globus_common_create_string("iRODS DSI error: status = %d", status);
         result = GlobusGFSErrorGeneric(error_str);
 
         goto error;
     }
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: rcDataObjChksum: outChksum=%s\n", outChksum);
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcDataObjChksum: outChksum=%s\n", outChksum);
     globus_gridftp_server_finished_command(op, GLOBUS_SUCCESS, outChksum);
 
     free(collection);
@@ -969,7 +969,7 @@ globus_l_gfs_iRODS_recv(
     collection = strdup(transfer_info->pathname);
     if(collection == NULL)
     {
-        result = GlobusGFSErrorGeneric("iRODS: strdup failed");
+        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
         goto alloc_error;
     }
 
@@ -985,7 +985,7 @@ globus_l_gfs_iRODS_recv(
     };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
     if (iRODS_handle->fd >= 0) {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Open existing object: %s.\n", collection);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: Open existing object: %s.\n", collection);
     }  
     else
     {
@@ -999,10 +999,10 @@ globus_l_gfs_iRODS_recv(
         if (iRODS_Resource_struct.resource != NULL)
         {
             addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_Resource_struct.resource);
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with resource: %s\n", iRODS_Resource_struct.resource);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: Creating file with resource: %s\n", iRODS_Resource_struct.resource);
         } else if (iRODS_handle->defResource != NULL ) {
             addKeyVal (&dataObjInp.condInput, DEST_RESC_NAME_KW, iRODS_handle->defResource);
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Creating file with default resource: %s\n", iRODS_handle->defResource);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: Creating file with default resource: %s\n", iRODS_handle->defResource);
         }
         iRODS_handle->fd = rcDataObjCreate (iRODS_handle->conn, &dataObjInp);
         if (iRODS_handle->fd < 0) {
@@ -1011,7 +1011,7 @@ globus_l_gfs_iRODS_recv(
         }
         else
         {
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: Creating file succeeded. File created: %s.\n", collection);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: Creating file succeeded. File created: %s.\n", collection);
         }
     } 
 
@@ -1094,7 +1094,7 @@ globus_l_gfs_iRODS_send(
     collection = strdup(transfer_info->pathname);
     if(collection == NULL)
     {
-        result = GlobusGFSErrorGeneric("iRODS: strdup failed");
+        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
         goto alloc_error;
     }
     
@@ -1109,9 +1109,7 @@ globus_l_gfs_iRODS_send(
         if (res == 0)
         { 
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
-            //char *s = strstr(collection, iRODS_handle->ftp_host_id); iRODS_handle->hostname
-            char *s = strstr(collection, iRODS_handle->hostname);
-            //char *s = strstr(URL, "data.repo.cineca.it");
+            char *s = strstr(URL, iRODS_handle->hostname);
 
             if(s != NULL) {
                 char *c = strstr(s, "/");
@@ -1120,7 +1118,7 @@ globus_l_gfs_iRODS_send(
             }
             else
             {   
-                // Manage scenario with different GridFTP host (report an error)
+                // Manage scenario with different iRODS host (report an error)
                 char *err_str = globus_common_create_string("iRODS DSI: the Handle Server %s returnd an URL ( %s ) which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
                 result = GlobusGFSErrorGeneric(err_str);  
                 goto error;
@@ -1165,11 +1163,11 @@ globus_l_gfs_iRODS_send(
     if (iRODS_Resource_struct.resource != NULL)
     {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_Resource_struct.resource);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Retriving file with resource: %s\n", iRODS_Resource_struct.resource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retriving file with resource: %s\n", iRODS_Resource_struct.resource);
     }
     else if (iRODS_handle->defResource != NULL ) {
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS: Retrieving file from default resource: %s\n", iRODS_handle->defResource);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retrieving file from default resource: %s\n", iRODS_handle->defResource);
     };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
     
@@ -1177,7 +1175,7 @@ globus_l_gfs_iRODS_send(
         result = globus_l_gfs_iRODS_make_error("rcDataObjOpen failed.", iRODS_handle->fd);
         goto error;
     }  
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: rcDataObjOpen: %s\n", collection);
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: rcDataObjOpen: %s\n", collection);
 
     /* reset all the needed variables in the handle */
     iRODS_handle->read_eof = GLOBUS_FALSE;
