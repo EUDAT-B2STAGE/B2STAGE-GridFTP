@@ -20,8 +20,8 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
   size_t new_len = s->len + size*nmemb;
   s->ptr = realloc(s->ptr, new_len+1);
   if (s->ptr == NULL) {
-    //fprintf(stderr, "realloc() failed\n");
-    exit(EXIT_FAILURE);
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: manage_pid realloc() failed\n");
+    
   }
   memcpy(s->ptr+s->len, ptr, size*nmemb);
   s->ptr[new_len] = '\0';
@@ -31,13 +31,8 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, struct string *s)
 }
 
 
-//int manage_pid(char *pid_handle_URL, char *PID, char **URL) {
 int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: Manage_pid invoked..\n");
-
-//   *URL = malloc(5 * sizeof(char));
-  //  strcpy(*URL, "test");
-    //return 0;
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: manage_pid invoked..\n");
 
     CURL *curl;
     CURLcode res;
@@ -49,21 +44,13 @@ int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
       init_string(&s);
       char* completeURL;
       
-      //check if pid_handle_URL end with "/
-     /* if (pid_handle_URL[(strlen(pid_handle_URL) - 1)] == '/') 
+      // Remove last "/" from handle URL
+      if (pid_handle_URL[(strlen(pid_handle_URL) - 1)] == '/') 
       {
+        pid_handle_URL[strlen(pid_handle_URL) - 1] = 0;
         completeURL = malloc(strlen(pid_handle_URL)+strlen(PID)+1); 
         strcpy(completeURL, pid_handle_URL);
       }
-      else
-      {
-	//add "/" at the end
-        completeURL = malloc(strlen(pid_handle_URL)+strlen(PID)+2);
-        strcpy(completeURL, pid_handle_URL);
-        completeURL[strlen(pid_handle_URL)] = '/';
-      }*/
-
-//      strcat(completeURL, PID);
 
       completeURL = malloc(strlen(pid_handle_URL)+strlen(PID)+1);
       strcpy(completeURL, pid_handle_URL);
@@ -73,7 +60,6 @@ int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
       curl_easy_setopt(curl, CURLOPT_URL, completeURL);
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
-      // example.com is redirected, so we tell libcurl to follow redirection
       curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
  
       // Perform the request, res will get the return code
@@ -91,12 +77,12 @@ int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
       globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: JSON output: %s\n", s.ptr);
 
       cJSON *root = cJSON_Parse(s.ptr);
-      int reponseCode  = cJSON_GetObjectItem(root,"responseCode")->valueint;
-      if (reponseCode != 1)
+      int responseCode  = cJSON_GetObjectItem(root,"responseCode")->valueint;
+      if (responseCode != 1)
       {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: ReponseCode =  %i\n", reponseCode);
+        //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: JSON responseCode =  %i\n", responseCode);
         free(s.ptr);
-        return reponseCode;
+        return responseCode;
       }
      cJSON *values = cJSON_GetObjectItem(root,"values");
      int numberOfKeys = cJSON_GetArraySize(values);
@@ -110,7 +96,6 @@ int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
        {
 	    cJSON *data = cJSON_GetObjectItem(values_i, "data");
 	    char *myURL  = cJSON_GetObjectItem(data,"value")->valuestring;
-	    // *URL = strdup(myURL);
 	    *URL = malloc(strlen(myURL)+1);
 	    strcpy(*URL, myURL);
 	    free(s.ptr);
@@ -119,7 +104,6 @@ int manage_pid(char *pid_handle_URL, char *PID,  char **URL) {
 	}
     }
     free(s.ptr);
-    //printf("PID %s not found..\n", PID);
     return 1;
   }
 return 1;
