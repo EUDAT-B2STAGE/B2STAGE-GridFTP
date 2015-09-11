@@ -146,6 +146,55 @@ iRODS_l_filename_hash(
     return rc;
 }
 
+char *str_replace(char *orig, char *rep, char *with) {
+    char *result; // the return string
+    char *ins;    // the next insert point
+    char *tmp;    // varies
+    int len_rep;  // length of rep
+    int len_with; // length of with
+    int len_front; // distance between rep and end of last rep
+    int count;    // number of replacements
+
+    if (!orig)
+    {
+        return NULL;
+    }
+    if (!rep)
+    {
+        rep = "";
+    }
+    len_rep = strlen(rep);
+    if (!with)
+    {
+        with = "";
+    }
+    len_with = strlen(with);
+
+    ins = orig;
+    for ((count = 0); (tmp = strstr(ins, rep)); ++count) 
+    {
+        ins = tmp + len_rep;
+    }
+
+    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+
+    if (!result)
+    {
+        return NULL;
+    }
+
+    while (count--) {
+        ins = strstr(orig, rep);
+        len_front = ins - orig;
+        tmp = strncpy(tmp, orig, len_front) + len_front;
+        tmp = strcpy(tmp, with) + len_with;
+        orig += len_front + len_rep; // move to next "end of rep"
+    }
+    strcpy(tmp, orig);
+    return result;
+}
+
+
 static
 void 
 iRODS_disconnect(
@@ -493,6 +542,8 @@ typedef struct globus_l_gfs_iRODS_handle_s
     char *                              domain; 
     
     char *                              irods_dn;
+    char *                              original_stat_path;
+    char *                              resolved_stat_path;
   
 } globus_l_gfs_iRODS_handle_t;
 
@@ -616,6 +667,8 @@ globus_l_gfs_iRODS_start(
     {
         iRODS_handle->user = strdup(session_info->username);
     }
+    iRODS_handle->original_stat_path = NULL;
+    iRODS_handle->resolved_stat_path = NULL;
 
     //Get zone from username if it contains "#"
     char delims[] = "#";
@@ -722,16 +775,85 @@ globus_l_gfs_iRODS_stat(
     globus_gfs_stat_t *                 stat_array;
     globus_gfs_stat_t                   stat_buf;
     int                                 stat_count = 1;
-    globus_l_gfs_iRODS_handle_t *         iRODS_handle;
+    int                                 res = -1;
+    globus_l_gfs_iRODS_handle_t *       iRODS_handle;
+    char *                              handle_server;
+    char *                              URL;
     globus_result_t                     result;
+    
     GlobusGFSName(globus_l_gfs_iRODS_stat);
 
     iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
     /* first test for obvious directories */
     iRODS_l_reduce_path(stat_info->pathname);
 
-    status = iRODS_l_stat1(iRODS_handle->conn, &stat_buf, stat_info->pathname);
+    handle_server = getenv(PID_HANDLE_SERVER);
+    if (handle_server != NULL) 
+    {
+        if (iRODS_handle->original_stat_path && iRODS_handle->resolved_stat_path)
+        {
+            // recursive transfer case; I don't need to solve the PID again (just replace the root path) 
+            if (strcmp(iRODS_handle->original_stat_path, stat_info->pathname) != 0)
+            {   
+                // Replace original_stat_path with resolved_stat_path
+                stat_info->pathname = str_replace(stat_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
+            }
+        }
+        else
+        {
+            // first stat
+            iRODS_handle->original_stat_path = strdup(stat_info->pathname); 
+            iRODS_handle->resolved_stat_path = strdup(stat_info->pathname);
 
+            char* PID = strdup(stat_info->pathname);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
+            
+            // Let's try to resolve the PID
+            res = manage_pid(handle_server, PID, &URL);
+            if (res == 0)
+            {   
+                // PID resolved
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
+                // Remove iRODS host from URL
+                char *s = strstr(URL, iRODS_handle->hostname);
+                if(s != NULL) 
+                {
+                    char *c = strstr(s, "/");
+                    // Remove last "/" from returned URL
+                    if (c && c[(strlen(c) - 1)] == '/') 
+                    {
+                        c[strlen(c) - 1] = 0;
+                    }
+                    iRODS_handle->resolved_stat_path = strdup(c);
+                    // replace the stat_info->pathname so that the stat and the folder transfer is done on the returned iRODS URL
+                    stat_info->pathname = iRODS_handle->resolved_stat_path;
+                }
+                else
+                {   
+                    // Manage scenario with a returned URL pointing to a different iRODS host (report an error)
+                    char *err_str = globus_common_create_string("iRODS DSI: the Handle Server '%s' returnd the URL '%s' which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
+                    result = GlobusGFSErrorGeneric(err_str);
+                    goto error;
+                }
+            }
+            else if (res == 1)
+            {   
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID with the Handle Server\n");
+            }
+            else
+            {   
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID. The Handle Server returned the response code: %i\n", res);
+            }
+        }
+    
+	globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: stat_info->pathname=%s\n", stat_info->pathname);
+	if (iRODS_handle->resolved_stat_path)
+	{  
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: iRODS_handle->resolved_stat_path=%s\n", iRODS_handle->resolved_stat_path);
+        }
+    }
+
+    status = iRODS_l_stat1(iRODS_handle->conn, &stat_buf, stat_info->pathname);
     if (status == -808000 || status == -310000)
     {
         result = globus_l_gfs_iRODS_make_error("No such file or directory.", status); //UberFTP NEEDS "No such file or directory" in error message
@@ -746,17 +868,16 @@ globus_l_gfs_iRODS_stat(
     if(!S_ISDIR(stat_buf.mode) || stat_info->file_only)
     {
         //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: globus_l_gfs_iRODS_stat(): single file\n");
-        stat_array = (globus_gfs_stat_t *) globus_calloc(
-            1, sizeof(globus_gfs_stat_t));
-        memcpy(stat_array, &stat_buf, sizeof(globus_gfs_stat_t));
+	stat_array = (globus_gfs_stat_t *) globus_calloc(
+	     1, sizeof(globus_gfs_stat_t));
+	 memcpy(stat_array, &stat_buf, sizeof(globus_gfs_stat_t));
     }
     else
     {
         //globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS: globus_l_gfs_iRODS_stat(): collection\n");
-        int rc;
-        free(stat_buf.name);
-        rc = iRODS_l_stat_dir(iRODS_handle->conn, &stat_array, &stat_count, stat_info->pathname, iRODS_handle->user);
-
+	int rc;
+	free(stat_buf.name);
+	rc = iRODS_l_stat_dir(iRODS_handle->conn, &stat_array, &stat_count, stat_info->pathname, iRODS_handle->user);
         if(rc != 0)
         {
             result = globus_l_gfs_iRODS_make_error("iRODS_l_stat_dir failed.", rc);
@@ -1093,40 +1214,55 @@ globus_l_gfs_iRODS_send(
         result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
         goto alloc_error;
     }
-    
-    handle_server = getenv(PID_HANDLE_SERVER);
-    if (handle_server != NULL) {
-        char* PID = strdup(transfer_info->pathname);
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
-       
-        res = manage_pid(handle_server, PID, &URL);
-        if (res == 0)
-        { 
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
-            char *s = strstr(URL, iRODS_handle->hostname);
 
-            if(s != NULL) {
-                char *c = strstr(s, "/");
-                collection = strdup(c);
+    handle_server = getenv(PID_HANDLE_SERVER);
+    if (handle_server != NULL)
+    {
+        if (iRODS_handle->resolved_stat_path == NULL) 
+        {
+            // single file transfer (stat has not been called); I need to try to resolve the PID
+            char* PID = strdup(transfer_info->pathname);
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
+            
+            // Let's try to resolve the PID
+            res = manage_pid(handle_server, PID, &URL);
+            if (res == 0)
+            {   
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: the Handle Server returned the URL: %s\n", URL);
+                // Remove iRODS host from URL
+                char *s = strstr(URL, iRODS_handle->hostname);
+                if (s != NULL) 
+                {
+                    char *c = strstr(s, "/");
+                    // set the resolved URL has collection to be trasnferred
+                    collection = strdup(c);
+                }
+                else
+                {   
+                    // Manage scenario with a returned URL pointing to a different iRODS host (report an error)
+                    char *err_str = globus_common_create_string("iRODS DSI: the Handle Server '%s' returnd the URL '%s' which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
+                    result = GlobusGFSErrorGeneric(err_str);
+                    goto error;
+                }
+            }
+            else if (res == 1)
+            {   
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID with the Handle Server\n");
             }
             else
             {   
-                // Manage scenario with a returned URL pointing to a different iRODS host (report an error)
-                char *err_str = globus_common_create_string("iRODS DSI: the Handle Server '%s' returnd the URL '%s' which is not managed by this GridFTP server which is connected through the iRODS DSI to: %s\n", handle_server, URL, iRODS_handle->hostname);
-                result = GlobusGFSErrorGeneric(err_str);  
-                goto error;
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID. The Handle Server returned the response code: %i\n", res);
             }
         }
-        else if (res == 1)
+        else if ( strcmp(iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path) != 0)
         {
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID with the Handle Server\n");
-        }
-        else
-        {   
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID. The Handle Server returned the response code: %i\n", res);
+            // Replace original_stat_path with resolved_stat_path
+            collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);    
+            res = 0;
         }
     }
-
+    iRODS_l_reduce_path(collection);
+   
     //Get iRODS resource from destination path
     if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
     {
@@ -1139,9 +1275,6 @@ globus_l_gfs_iRODS_send(
     {
         iRODS_getResource(collection);
     }
-
-    iRODS_l_reduce_path(collection);
-   
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retreiving '%s'\n", collection); 
     bzero (&dataObjInp, sizeof (dataObjInp));
