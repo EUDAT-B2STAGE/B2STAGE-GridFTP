@@ -9,7 +9,6 @@
 #include "globus_gridftp_server.h"
 
 
-//int manage_pid(char *pid_handle_URL, char *PID, char **URL);
 int manage_pid(char *pid_handle_URL, char *PID, char **URL );
 
 #endif
