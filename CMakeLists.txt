@@ -121,8 +121,8 @@ message("DEST_BIN_DIR is defined as $ENV{DEST_BIN_DIR}")
 message("DSI library name will be: ${dsi_library_name}")
 message("Gridmap callout library name will be: ${gridmap_callout_library_name}")
 
-add_library(${dsi_library_name} SHARED globus_gridftp_server_iRODS.c pid_manager.c cJSON.c)
-add_library(${gridmap_callout_library_name} SHARED gridmap_iRODS_callout.c libirodsmap.c)
+add_library(${dsi_library_name} SHARED DSI/globus_gridftp_server_iRODS.c DSI/pid_manager.c external/cJSON.c)
+add_library(${gridmap_callout_library_name} SHARED DSI/gridmap_iRODS_callout.c DSI/libirodsmap.c)
 
 set_target_properties(${dsi_library_name} PROPERTIES VERSION ${GENERIC_LIB_VERSION} )
 set_target_properties(${dsi_library_name} PROPERTIES LINKER_LANGUAGE CXX)
@@ -136,7 +136,7 @@ set(gridmap_callout_conf_name gridmap_iRODS_callout.conf)
 
 set(testirodsmap_exe "testirodsmap")
 set(testirodsmap_exe_LINK_FLAGS "-ldl -lglobus_gss_assist -lstdc++")
-add_executable(${testirodsmap_exe} testirodsmap.c libirodsmap.c)
+add_executable(${testirodsmap_exe} DSI/testirodsmap.c DSI/libirodsmap.c)
 set_target_properties(${testirodsmap_exe} PROPERTIES LINKER_LANGUAGE CXX)
 set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
 target_link_libraries(${testirodsmap_exe} ${irods_link_obj_path})
@@ -146,7 +146,9 @@ set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++ -lcurl")
 include_directories(${irods_include_path_list})
 include_directories($ENV{GLOBUS_LOCATION}/include/globus
         $ENV{GLOBUS_LOCATION}/lib/globus/include
-        $ENV{GLOBUS_LOCATION}/lib64/globus/include)
+        $ENV{GLOBUS_LOCATION}/lib64/globus/include
+        DSI
+        external)
 if (DEFINED ENV{FLAVOR})
     include_directories($ENV{GLOBUS_LOCATION}/include/ENV{FLAVOR})
 endif()
@@ -154,6 +156,6 @@ endif()
 add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
 install(TARGETS ${dsi_library_name} ${gridmap_callout_library_name} DESTINATION $ENV{DEST_LIB_DIR})
 install(TARGETS ${testirodsmap_exe} DESTINATION $ENV{DEST_BIN_DIR})
-configure_file(${gridmap_callout_conf_name}.in ${gridmap_callout_conf_name})
+configure_file(DSI/${gridmap_callout_conf_name}.in ${gridmap_callout_conf_name})
 install(FILES ${gridmap_callout_conf_name} DESTINATION $ENV{DEST_ETC_DIR})
 
