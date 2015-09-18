@@ -792,7 +792,7 @@ globus_l_gfs_iRODS_stat(
     {
         if (iRODS_handle->original_stat_path && iRODS_handle->resolved_stat_path)
         {
-            // recursive transfer case; I don't need to solve the PID again (just replace the root path) 
+            // Recursive transfer case; I don't need to solve the PID again (just replace the root path) 
             if (strcmp(iRODS_handle->original_stat_path, stat_info->pathname) != 0)
             {   
                 // Replace original_stat_path with resolved_stat_path
@@ -801,13 +801,27 @@ globus_l_gfs_iRODS_stat(
         }
         else
         {
-            // first stat
-            iRODS_handle->original_stat_path = strdup(stat_info->pathname); 
+            // First stat: get only PID <prefix>/<suffix> from pathname. 
+            // During uploading, the object name appears after the path
+            char* initPID = strdup(stat_info->pathname);
+            int i, count;
+            for (i=0, count=0; initPID[i]; i++)
+            {
+                count += (initPID[i] == '/');
+                if (count == 3)
+                {
+                    break;
+                }
+            }
+            char PID[i + 1];
+            strncpy(PID, initPID, i);
+            PID[i] = '\0';
+
+            iRODS_handle->original_stat_path = strdup(PID); 
             iRODS_handle->resolved_stat_path = strdup(stat_info->pathname);
 
-            char* PID = strdup(stat_info->pathname);
-            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
-            
+            globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!!\n", PID, handle_server);
+ 
             // Let's try to resolve the PID
             res = manage_pid(handle_server, PID, &URL);
             if (res == 0)
@@ -1046,12 +1060,36 @@ globus_l_gfs_iRODS_recv(
     int                                 flags = O_WRONLY;
     globus_bool_t                       finish = GLOBUS_FALSE;
     char *                              collection = NULL;
+    char *                              handle_server;
     dataObjInp_t                        dataObjInp;
     openedDataObjInp_t                  dataObjWriteInp;
     int result; 
 
     GlobusGFSName(globus_l_gfs_iRODS_recv);
     iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
+
+    if(transfer_info->pathname == NULL)
+    {
+        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
+        goto alloc_error;
+    }
+
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: transfer_info->pathname: %s.\n", transfer_info->pathname);
+    handle_server = getenv(PID_HANDLE_SERVER);
+    if (handle_server != NULL)
+    {
+        if ( strcmp(iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path) != 0)
+        {
+            // Replace original_stat_path with resolved_stat_path
+            collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);    
+            //res = 0;
+        }
+    }
+    iRODS_l_reduce_path(collection);
+     
+    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: collection: %s.\n", collection);
+
+
     //Get iRODS resource from destination path
     if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
     {
@@ -1078,13 +1116,7 @@ globus_l_gfs_iRODS_recv(
         flags |= O_TRUNC;
     }
 
-    iRODS_l_reduce_path(transfer_info->pathname);
-    collection = strdup(transfer_info->pathname);
-    if(collection == NULL)
-    {
-        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
-        goto alloc_error;
-    }
+
 
     bzero (&dataObjInp, sizeof (dataObjInp));
     rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
