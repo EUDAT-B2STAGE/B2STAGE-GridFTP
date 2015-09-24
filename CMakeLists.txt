@@ -141,6 +141,10 @@ set_target_properties(${testirodsmap_exe} PROPERTIES LINKER_LANGUAGE CXX)
 set_target_propertieS(${testirodsmap_exe} PROPERTIES LINK_FLAGS ${testirodsmap_exe_LINK_FLAGS})
 target_link_libraries(${testirodsmap_exe} ${irods_link_obj_path})
 
+set(testpidmanager_exe "testpidmanager")
+add_executable(${testpidmanager_exe} DSI/pid_manager_test.c DSI/pid_manager.c external/cJSON.c)
+target_link_libraries(${testpidmanager_exe} ${irods_link_obj_path} "-lm -lglobus_gridftp_server")
+
 set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++ -lcurl")
 
 include_directories(${irods_include_path_list})
@@ -156,6 +160,7 @@ endif()
 add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
 install(TARGETS ${dsi_library_name} ${gridmap_callout_library_name} DESTINATION $ENV{DEST_LIB_DIR})
 install(TARGETS ${testirodsmap_exe} DESTINATION $ENV{DEST_BIN_DIR})
+install(TARGETS ${testpidmanager_exe} DESTINATION $ENV{DEST_BIN_DIR})
 configure_file(DSI/${gridmap_callout_conf_name}.in ${gridmap_callout_conf_name})
 install(FILES ${gridmap_callout_conf_name} DESTINATION $ENV{DEST_ETC_DIR})
 
