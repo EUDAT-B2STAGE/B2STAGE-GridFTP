@@ -840,7 +840,7 @@ globus_l_gfs_iRODS_stat(
                     }
                     iRODS_handle->resolved_stat_path = strdup(c);
                     // replace the stat_info->pathname so that the stat and the folder transfer is done on the returned iRODS URL
-                    stat_info->pathname = iRODS_handle->resolved_stat_path;
+                    stat_info->pathname = str_replace(stat_info->pathname, PID, iRODS_handle->resolved_stat_path);
                 }
                 else
                 {   
@@ -1082,7 +1082,6 @@ globus_l_gfs_iRODS_recv(
         {
             // Replace original_stat_path with resolved_stat_path
             collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);    
-            //res = 0;
         }
     }
     iRODS_l_reduce_path(collection);
@@ -1253,7 +1252,20 @@ globus_l_gfs_iRODS_send(
         if (iRODS_handle->resolved_stat_path == NULL) 
         {
             // single file transfer (stat has not been called); I need to try to resolve the PID
-            char* PID = strdup(transfer_info->pathname);
+            char* initPID = strdup(transfer_info->pathname);
+            int i, count;
+            for (i=0, count=0; initPID[i]; i++)
+            {
+                count += (initPID[i] == '/');
+                if (count == 3)
+                {
+                    break;
+                }
+            }
+            char PID[i + 1];
+            strncpy(PID, initPID, i);
+            PID[i] = '\0'; 
+
             globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!\n", PID, handle_server);
             
             // Let's try to resolve the PID
@@ -1267,7 +1279,9 @@ globus_l_gfs_iRODS_send(
                 {
                     char *c = strstr(s, "/");
                     // set the resolved URL has collection to be trasnferred
-                    collection = strdup(c);
+                    //collection = strdup(c);
+
+                   collection = str_replace(transfer_info->pathname, PID, c);
                 }
                 else
                 {   
