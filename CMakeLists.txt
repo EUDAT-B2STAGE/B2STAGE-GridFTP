@@ -42,6 +42,7 @@ if (DEFINED ENV{IRODS_PATH})
                     "$ENV{IRODS_PATH}/lib/irods/libirods_client.so"
                     "$ENV{IRODS_PATH}/lib/irods/libirods_client_api.so"
                     "-lrt"
+                    "-lcurl"
                     "$ENV{IRODS_PATH}/lib/irods/libjansson.a"
                     "$ENV{IRODS_PATH}/lib/irods/libboost_filesystem.a"
                     "$ENV{IRODS_PATH}/lib/irods/libboost_regex.a"
