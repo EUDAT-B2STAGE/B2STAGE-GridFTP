@@ -14,6 +14,8 @@ The GridFTP iRODS DSI consists of C based functions, which, through
 the iRODS C API, can interact with iRODS. The main supported operations 
 are get, put, delete and list.
 
+![Alt text](/images/iRODS-DSI.png?raw=true "iRODS-DSI")
+
 The module can be loaded by the GridFTP server at start-up time through 
 a specific command line option, therefore no changes are required in the
 GridFTP server typical configuration, which makes easier the maintenance 
