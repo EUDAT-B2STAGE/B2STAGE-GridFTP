@@ -792,13 +792,9 @@ globus_l_gfs_iRODS_stat(
     {
         if (iRODS_handle->original_stat_path && iRODS_handle->resolved_stat_path)
         {
-            // Recursive transfer case; I don't need to solve the PID again (just replace the root path) 
-            if (strcmp(iRODS_handle->original_stat_path, stat_info->pathname) != 0)
-            {   
-                // Replace original_stat_path with resolved_stat_path
-                stat_info->pathname = str_replace(stat_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
-            }
-        }
+            // Replace original_stat_path with resolved_stat_path
+            stat_info->pathname = str_replace(stat_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
+        }        
         else
         {
             // First stat: get only PID <prefix>/<suffix> from pathname. 
@@ -840,7 +836,7 @@ globus_l_gfs_iRODS_stat(
                     }
                     iRODS_handle->resolved_stat_path = strdup(c);
                     // replace the stat_info->pathname so that the stat and the folder transfer is done on the returned iRODS URL
-                    stat_info->pathname = iRODS_handle->resolved_stat_path;
+                    stat_info->pathname = strdup(iRODS_handle->resolved_stat_path);
                 }
                 else
                 {   
@@ -944,11 +940,24 @@ globus_l_gfs_iRODS_command(
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
     char *                              collection;
     globus_result_t                     result = 0;
+    char *                              handle_server;
     char *                              error_str;
     char *                              outChksum = GLOBUS_NULL;
     GlobusGFSName(globus_l_gfs_iRODS_command);
 
     iRODS_handle = (globus_l_gfs_iRODS_handle_t *) user_arg;
+
+
+    handle_server = getenv(PID_HANDLE_SERVER);
+    if (handle_server != NULL)
+    {
+        if (iRODS_handle->original_stat_path && iRODS_handle->resolved_stat_path)
+        {
+            // Replace original_stat_path with resolved_stat_path
+            cmd_info->pathname = str_replace(cmd_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
+        }
+    }
+
 
     collection = strdup(cmd_info->pathname);
     iRODS_l_reduce_path(collection);
