@@ -1082,7 +1082,7 @@ globus_l_gfs_iRODS_recv(
     int                                 flags = O_WRONLY;
     globus_bool_t                       finish = GLOBUS_FALSE;
     char *                              collection = NULL;
-    char *                              handle_server;
+    //char *                              handle_server;
     dataObjInp_t                        dataObjInp;
     openedDataObjInp_t                  dataObjWriteInp;
     int result; 
@@ -1092,23 +1092,12 @@ globus_l_gfs_iRODS_recv(
 
     if(transfer_info->pathname == NULL)
     {
-        result = GlobusGFSErrorGeneric("iRODS DSI: strdup failed");
+        result = GlobusGFSErrorGeneric("iRODS DSI: transfer_info->pathname == NULL");
         goto alloc_error;
     }
 
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: transfer_info->pathname: %s.\n", transfer_info->pathname);
-    handle_server = getenv(PID_HANDLE_SERVER);
-    if (handle_server != NULL)
-    {
-        if ( strcmp(iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path) != 0)
-        {
-            // Replace original_stat_path with resolved_stat_path
-            collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);    
-        }
-    }
+    collection = strdup(transfer_info->pathname); 
     iRODS_l_reduce_path(collection);
-     
-    globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: collection: %s.\n", collection);
 
 
     //Get iRODS resource from destination path
