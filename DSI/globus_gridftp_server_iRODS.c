@@ -1266,7 +1266,7 @@ globus_l_gfs_iRODS_send(
             collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
             res = 0;
         }
-        else
+        else if (iRODS_handle->original_stat_path == NULL && iRODS_handle->resolved_stat_path == NULL) 
         {
             // single file transfer (stat has not been called); I need to try to resolve the PID
             char* initPID = strdup(transfer_info->pathname);
