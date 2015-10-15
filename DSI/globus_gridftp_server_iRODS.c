@@ -795,7 +795,7 @@ globus_l_gfs_iRODS_stat(
             // Replace original_stat_path with resolved_stat_path
             stat_info->pathname = str_replace(stat_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
         }        
-        else
+        else if (iRODS_handle->original_stat_path == NULL && iRODS_handle->resolved_stat_path == NULL)
         {
             // First stat: get only PID <prefix>/<suffix> from pathname. 
             // During uploading, the object name appears after the path
