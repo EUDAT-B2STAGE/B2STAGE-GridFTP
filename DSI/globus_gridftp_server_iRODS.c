@@ -822,7 +822,7 @@ globus_l_gfs_iRODS_stat(
                 PID[i] = '\0';
 
                 iRODS_handle->original_stat_path = strdup(PID); 
-                iRODS_handle->resolved_stat_path = strdup(stat_info->pathname);
+                //iRODS_handle->resolved_stat_path = strdup(stat_info->pathname);
 
                 globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: if '%s' is a PID the Handle Server '%s' will resolve it!!\n", PID, handle_server);
  
@@ -1260,7 +1260,13 @@ globus_l_gfs_iRODS_send(
     handle_server = getenv(PID_HANDLE_SERVER);
     if (handle_server != NULL)
     {
-        if (iRODS_handle->resolved_stat_path == NULL) 
+       if (iRODS_handle->original_stat_path && iRODS_handle->resolved_stat_path)
+        {
+            // Replace original_stat_path with resolved_stat_path
+            collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);
+            res = 0;
+        }
+        else
         {
             // single file transfer (stat has not been called); I need to try to resolve the PID
             char* initPID = strdup(transfer_info->pathname);
@@ -1310,12 +1316,6 @@ globus_l_gfs_iRODS_send(
             {   
                 globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: unable to resolve the PID. The Handle Server returned the response code: %i\n", res);
             }
-        }
-        else if ( strcmp(iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path) != 0)
-        {
-            // Replace original_stat_path with resolved_stat_path
-            collection = str_replace(transfer_info->pathname, iRODS_handle->original_stat_path, iRODS_handle->resolved_stat_path);    
-            res = 0;
         }
     }
     iRODS_l_reduce_path(collection);
