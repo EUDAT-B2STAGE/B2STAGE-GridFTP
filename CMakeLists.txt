@@ -32,6 +32,7 @@ else()
     message( FATAL_ERROR "GLOBUS_LOCATION is NOT defined, CMake will exit." )
 endif()
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if (DEFINED ENV{IRODS_PATH})
     message("IRODS_PATH is defined as $ENV{IRODS_PATH}")
     if ($ENV{IRODS_PATH} STREQUAL "/usr")
