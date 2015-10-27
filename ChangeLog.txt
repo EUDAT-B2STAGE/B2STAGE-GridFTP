@@ -2,6 +2,10 @@
 ***** GridFTP iRODS DSI change log *****
 ****************************************
 
+Release 1.7.4 (2015-10-27):
+* Added option to enable the DSI module to manage the input path as a PID: the DSI will try to resolve the PID and   perform the requested operation using the URI returned by the Handle server (currently only listing and downloadi   ng are supported)
+
+
 Release 1.7.3 (2015-08-19):
 * Solved bug retreiving object with custom resource based on irodsResourceMap.conf
 
