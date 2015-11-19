@@ -17,8 +17,5 @@ export DEST_BIN_DIR=""        #(optional) path to the folder in which binary exe
 export DEST_ETC_DIR=""        #(optional) path to the folder in which configuration files will be copied
                               #such as ${GLOBUS_LOCATION}/lib64
 
-export RESOURCE_MAP_PATH=""   #(optional) path to the folder containing the 
-                              #"irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
-
 #export IRODS_40_COMPAT=""    #(optional) Use compatible library locations for
                               #iRODS 4.0.x only (not needed for iRODS 4.1+).

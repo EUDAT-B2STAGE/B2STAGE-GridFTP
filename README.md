@@ -58,8 +58,6 @@ It is possible to use the official gridftp server package without recompiling it
    - DEST_LIB_DIR -->  `/preferred_path/iRODS_DSI`
    - DEST_BIN_DIR --> `/preferred_path/iRODS_DSI`
    - DEST_ETC_DIR -->  `/preferred_path/iRODS_DSI`
-   - RESOURCE_MAP_PATH --> (optional) path to the folder containing the 
-   "irodsResourceMap.conf" file (see step 4 of section "Configure and run") 
    - IRODS_40_COMPAT --> (optional) Use iRODS 4.0.x compatible library 
    file locations.  (Use for iRODS 4.0.x only, not needed for iRODS 4.1.+).
 
@@ -246,14 +244,19 @@ Additional configuration
    $homeDirPattern "/%s/home"
    ```
         
-3. It is possible to specify a policy to manage more than one iRODS resource. 
-   The DSI module looks for a file called 'irodsresourcemap.conf' (step 1 of 
-   the Installation paragraph). In that file it is possible to specify which 
-   iRODS  resource has to be used when creating a file in a particular iRODS path.
+3. It is possible to specify a policy to manage more than one iRODS resource 
+   setting the irodsResourceMap environment variable in `$GLOBUS_LOCATION/etc/gridftp.conf`.
+
+   $irodsResourceMap "path/to/mapResourcefile"
+
+   The irodsResourceMap variable must point to a file which specifies which 
+   iRODS resource has to be used when uplaoding or downloading a file in a 
+   particular iRODS path.
    For example:
    
    ```
-    $cat irodsResourceMap.conf 
+    $cat path/to/mapResourcefile
+
     /CINECA01/home/cin_staff/rmucci00;resc-repl
     /CINECA01/home/cin_staff/mrossi;resc-repl
     ```

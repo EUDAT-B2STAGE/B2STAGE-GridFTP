@@ -38,9 +38,10 @@
 
 #define MAX_DATA_SIZE 1024
 
-#ifndef IRODS_MAPS_PATH
-  #define IRODS_MAPS_PATH = ""
-#endif
+/* Path to the file mapping iRODS path and resources*/
+#define IRODS_RESOURCE_MAP "irodsResourceMap" 
+
+#define IRODS_USER_MAP "irodsUerap" 
 
 #ifndef DEFAULT_HOMEDIR_PATTERN
   /* Default homeDir pattern, referencing up to two strings with %s.
@@ -214,10 +215,7 @@ iRODS_getUserName(
     char *iRODS_user_name = NULL;
     char *search = ";";
 
-    char filename[1024];
-    snprintf( filename, sizeof(filename), "%s/irodsUserMap.conf",IRODS_MAPS_PATH);
-
-    FILE *file = fopen ( filename, "r" );
+    FILE *file = fopen (getenv(IRODS_USER_MAP), "r" );
     if ( file != NULL )
     {
         char line [ 256 ]; /* or other suitable maximum line size */
@@ -252,11 +250,8 @@ iRODS_getResource(
     char *path_Read = NULL;
     char *iRODS_res = NULL;
     char *search = ";";
-   
-    char filename[1024];
-    snprintf( filename, sizeof(filename), "%s/irodsResourceMap.conf", IRODS_MAPS_PATH);
 
-    FILE *file = fopen ( filename, "r" );
+    FILE *file = fopen (getenv(IRODS_RESOURCE_MAP), "r" );
     if ( file != NULL )
     {
         char line [ 256 ]; /* or other suitable maximum line size */
@@ -274,7 +269,7 @@ iRODS_getResource(
                 {
                     iRODS_res[len - 1] = '\0'; //Remove EOF 
                 }
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: Resource found in %s: destinationPath = %s, iRODS resource = %s.\n", filename, destinationPath, iRODS_res);
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: found iRODS resource  %s for destinationPath %s.\n", iRODS_res, destinationPath);
                 
                 /* store the mapping in the global pointers in iRODS_Resource_struct - duplicating the string value.
                  * Free any previously stored (duplicated) string pointer first!
@@ -290,7 +285,7 @@ iRODS_getResource(
     }
     else
     {
-        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: irodsResourceMap.conf not found in %s\n", filename);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: irodsResourceMap file not found: %s.\n", getenv(IRODS_RESOURCE_MAP));
     }  
 
 }
@@ -1101,16 +1096,19 @@ globus_l_gfs_iRODS_recv(
 
 
     //Get iRODS resource from destination path
-    if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
+    if (getenv(IRODS_RESOURCE_MAP) !=NULL)
     {
-        if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+        if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
         {
-            iRODS_getResource(transfer_info->pathname);
+            if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+            {
+                iRODS_getResource(transfer_info->pathname);
+            }
         }
-    }
-    else
-    {
-        iRODS_getResource(transfer_info->pathname);
+        else
+        {
+             iRODS_getResource(transfer_info->pathname);
+        }
     }
 
     if(iRODS_handle == NULL)
@@ -1321,16 +1319,19 @@ globus_l_gfs_iRODS_send(
     iRODS_l_reduce_path(collection);
    
     //Get iRODS resource from destination path
-    if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
+    if (getenv(IRODS_RESOURCE_MAP) !=NULL)
     {
-        if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+        if(iRODS_Resource_struct.resource != NULL && iRODS_Resource_struct.path != NULL)
+        {
+            if(strncmp(iRODS_Resource_struct.path, transfer_info->pathname, strlen(iRODS_Resource_struct.path)) != 0 )
+            {
+                iRODS_getResource(collection);
+            }
+        }
+        else
         {
             iRODS_getResource(collection);
         }
-    }
-    else
-    {
-        iRODS_getResource(collection);
     }
 
     globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: retreiving '%s'\n", collection); 

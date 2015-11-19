@@ -159,7 +159,6 @@ if (DEFINED ENV{FLAVOR})
     include_directories($ENV{GLOBUS_LOCATION}/include/ENV{FLAVOR})
 endif()
 
-add_definitions(-DIRODS_MAPS_PATH=\"$ENV{RESOURCE_MAP_PATH}\")
 install(TARGETS ${dsi_library_name} ${gridmap_callout_library_name} DESTINATION $ENV{DEST_LIB_DIR})
 install(TARGETS ${testirodsmap_exe} DESTINATION $ENV{DEST_BIN_DIR})
 install(TARGETS ${testpidmanager_exe} DESTINATION $ENV{DEST_BIN_DIR})
