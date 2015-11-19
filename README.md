@@ -233,7 +233,9 @@ Additional configuration
 3. It is possible to specify a policy to manage more than one iRODS resource 
    setting the irodsResourceMap environment variable in `$GLOBUS_LOCATION/etc/gridftp.conf`.
 
+   ```
    $irodsResourceMap "path/to/mapResourcefile"
+   ```
 
    The irodsResourceMap variable must point to a file which specifies which 
    iRODS resource has to be used when uplaoding or downloading a file in a 
