@@ -118,9 +118,9 @@ Configuring and run
 The GridFTP server can be run by an unprivileged user (root privileges are 
 not required):
 
-1. Create */preferred_path/iRODS_DSI/irods_environment.json* or 
-   */preferred_path/iRODS_DSI/.irodsEnv* (for iRODS < 4.1.x) and populate it 
-   with the information related to the "rodsadmin" user; for instance:
+1. As the user who runs the GridFTP server, create the file *~/.irods/irods_environment.json*
+   (or *~/.irods/.irodsEnv* for iRODS < 4.1.x) and populate it with the information 
+   related to a "rodsadmin" user; for instance:
 
    ```
    {
@@ -131,25 +131,18 @@ not required):
        "irods_default_resource" : "demoResc"
    }
    ```
-          
+   
+2. As the user who runs the GridFTP server, try an `ils` icommand to verify that 
+   the information set in the *irods_environment.json* are fine. If needed, perform 
+   an `iinit` to authenticate the the iRODS user. 
+
 2. Add the following lines to the GridFTP configuration file ( tipically 
    *$GLOBUS_LOCATION/etc/gridftp.conf* ):
    ```
-   $IRODS_ENVIRONMENT_FILE "/preferred_path/iRODS_DSI/irods_environment.json"
-   #$irodsEnvFile "/preferred_path/iRODS_DSI/.irodsEnv"  #for iRODS < 4.1.x
    $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/preferred_path/iRODS_DSI"
    $irodsConnectAsAdmin "rods"
    load_dsi_module iRODS 
    auth_level 4
-   ```
-   
-3. Make sure that in iRODS, the GridFTP server certificate DN is associated 
-   with the rodsadmin account previously specified in the irods_environment.json, 
-   for example:
-
-   ```
-   $ iadmin lua | grep rods
-        rods /C=US/O=Globus Consortium/OU=Globus Connect Service/CN=host/develvm01.pico.cineca.it
    ```
 
 4. When deploying with iRODS 4, it is necessary to preload the DSI library 
@@ -158,19 +151,15 @@ not required):
    basic network and authentication plugins), the plugins would fail to load 
    (as the plugins are not explicitly declaring a dependency on the runtime symbols).
 
-   To preload the library, you need to set the LD_PRELOAD variable to 
-   `/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so` in the 
-   environment from which the GridFTP server is started (i.e., it is not enough 
-   to set it in /etc/gridftp.conf). 
-   It is necessary to load the GridFTP server library alongside the DSI library 
+   Also, it is necessary to load the GridFTP server library alongside the DSI library 
    (which depends on symbols provided by the GridFTP server library). Otherwise, 
    any command invocation in that environment fails with unresolved symbol errors.
 
-   To do so, add the following lines at the beginning of *globus-gridftp-server*:
+   To do so, add the following lines at the beginning of the *globus-gridftp-server* file:
 
    ```
    LD_PRELOAD="$LD_PRELOAD:/usr/lib64/libglobus_gridftp_server.so:/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
-        export LD_PRELOAD
+   export LD_PRELOAD
    ```
    
 5. In order for GridFTP CKSM (checksum) command to interoperate with Globus.org, 
@@ -184,7 +173,6 @@ not required):
 
 6. Run the server with:
    ```
-   $ export LD_LIBRARY_PATH=/preferred_path/iRODS_DSI/
    $ /etc/init.d/globus-gridftp-server start
    ```
 
@@ -198,7 +186,6 @@ Additional configuration
    only listing and downloading is supported).
    
    For instance: 
-   
    ```
    $globus-url-copy -list gsiftp://develvm01.pico.cineca.it:2811/11100/da3dae0a-6371-11e5-ba64-a41f13eb32b2/
    ```    
@@ -221,7 +208,6 @@ Additional configuration
    ```
    $pidHandleServer "http://hdl.handle.net/api/handles"
    ```
-       
     
    Note: Once the PID is correclty resolved, the requested operation 
    (listing or downloading) will be correctly performed only if the URI 
