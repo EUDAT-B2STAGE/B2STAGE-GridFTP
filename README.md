@@ -32,13 +32,17 @@ Prerequisite:
 
 - CMake 2.7 or higher
 
+- iRODS with iRODS-dev packages (see http://irods.org/download/)
+
 - globus-gridftp-server-progs
 - libglobus-common-dev (.deb) or globus-common-devel (.rpm)
 - libglobus-gridftp-server-dev (.deb) or globus-gridftp-server-devel (.rpm)
 - libglobus-gridmap-callout-error-dev (.deb) or globus-gridmap-callout-error-devel (.rpm)
 (see http://www.ige-project.eu/downloads/software/releases/downloads)
 
-It is possible to use the official gridftp server package without recompiling it.
+- libcurl4-openssl-dev
+
+It is possible to use the official iRODS and gridftp server packages without recompiling it.
 
 
 1. Create a deployment folder:
