@@ -32,7 +32,7 @@ Prerequisite:
 
 - CMake 2.7 or higher
 
-- iRODS with iRODS-dev packages (see http://irods.org/download/)
+- iRODS with the Development Tools and Runtime Libraries packages (see http://irods.org/download/)
 
 - globus-gridftp-server-progs
 - libglobus-common-dev (.deb) or globus-common-devel (.rpm)
