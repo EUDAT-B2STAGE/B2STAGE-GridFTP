@@ -156,6 +156,11 @@ not required):
    load_dsi_module iRODS 
    auth_level 4
    ```
+   In case the GridFTP is run as a system service, also set the $HOME env 
+   variable pointing to the home folder of the user who runs the gridftp server:
+   ```
+   $HOME /path/to/user/home
+   ```
 
 4. When deploying with iRODS 4, it is necessary to preload the DSI library 
    into the GridFTP server binary, so that the symbols exported by the library 
