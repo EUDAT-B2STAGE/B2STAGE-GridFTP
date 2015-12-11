@@ -356,11 +356,7 @@ iRODS_l_stat1(
         }
         freeRodsObjStat (rodsObjStatOut); 
     }
-
-    if(status == -808000)
-    {
-       globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: object or collection called: %s not found\n", start_dir);
-    }
+    
     return status;
 }
 
@@ -982,7 +978,8 @@ globus_l_gfs_iRODS_command(
                 collInp_t collCreateInp;
                 bzero (&collCreateInp, sizeof (collCreateInp));
                 rstrcpy (collCreateInp.collName, collection, MAX_NAME_LEN);
-                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcCollCreate: collection=%s\n", collection);
+                addKeyVal (&collCreateInp.condInput, RECURSIVE_OPR__KW, ""); 
+                globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: rcCollCreate collection=%s\n", collection);
                 status = rcCollCreate (iRODS_handle->conn, &collCreateInp);
             }
             break;
