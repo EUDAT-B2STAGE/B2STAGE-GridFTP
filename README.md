@@ -17,10 +17,20 @@ are get, put, delete and list.
 
 ![Alt text](/images/iRODS-DSI.png?raw=true "iRODS-DSI")
 
+Once installed and configured, users will be able to interact with iRODS through 
+any GridFTP client passing to it a valid iRODS path; for instance:
+ 
+ ```
+ $ globus-url-copy -list gsiftp://develvm.cluster.cineca.it:2811/tempZone/home/myuser/
+ ```
+ 
+will list the content of the */tempZone/home/myuser/* iRODS collection.
+
 The module can be loaded by the GridFTP server at start-up time through 
 a specific command line option, therefore no changes are required in the
 GridFTP server typical configuration, which makes easier the maintenance 
 of the module being decoupled from future changes of the server.
+
 
 
 
@@ -32,13 +42,17 @@ Prerequisite:
 
 - CMake 2.7 or higher
 
+- iRODS with the Development Tools and Runtime Libraries packages (see http://irods.org/download/)
+
 - globus-gridftp-server-progs
 - libglobus-common-dev (.deb) or globus-common-devel (.rpm)
 - libglobus-gridftp-server-dev (.deb) or globus-gridftp-server-devel (.rpm)
 - libglobus-gridmap-callout-error-dev (.deb) or globus-gridmap-callout-error-devel (.rpm)
 (see http://www.ige-project.eu/downloads/software/releases/downloads)
 
-It is possible to use the official gridftp server package without recompiling it.
+- libcurl4-openssl-dev
+
+It is possible to use the official iRODS and gridftp server packages without recompiling it.
 
 
 1. Create a deployment folder:
@@ -132,7 +146,7 @@ not required):
    
 2. As the user who runs the GridFTP server, try an `ils` icommand to verify that 
    the information set in the *irods_environment.json* are fine. If needed, perform 
-   an `iinit` to authenticate the the iRODS user. 
+   an `iinit` to authenticate the iRODS user. 
 
 2. Add the following lines to the GridFTP configuration file ( tipically 
    *$GLOBUS_LOCATION/etc/gridftp.conf* ):
@@ -141,6 +155,11 @@ not required):
    $irodsConnectAsAdmin "rods"
    load_dsi_module iRODS 
    auth_level 4
+   ```
+   In case the GridFTP is run as a system service, also set the $HOME env 
+   variable pointing to the home folder of the user who runs the gridftp server:
+   ```
+   $HOME /path/to/user/home
    ```
 
 4. When deploying with iRODS 4, it is necessary to preload the DSI library 
@@ -152,13 +171,15 @@ not required):
    Also, it is necessary to load the GridFTP server library alongside the DSI library 
    (which depends on symbols provided by the GridFTP server library). Otherwise, 
    any command invocation in that environment fails with unresolved symbol errors.
-
+   
    To do so, add the following lines at the beginning of the *globus-gridftp-server* file:
 
    ```
-   LD_PRELOAD="$LD_PRELOAD:/usr/lib64/libglobus_gridftp_server.so:/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
+   LD_PRELOAD="$LD_PRELOAD:/path/to/libglobus_gridftp_server.so:/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
    export LD_PRELOAD
    ```
+   
+   The libglobus_gridftp_server.so is usually placed in */usr/lib64/* or */usr/lib/x86_64-linux-gnu/*.
    
 5. In order for GridFTP CKSM (checksum) command to interoperate with Globus.org, 
    it is necessary to configure iRODS to use MD5 checksums 
