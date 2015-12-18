@@ -6,8 +6,6 @@ export GLOBUS_LOCATION=""     #path to the Globus installation (if you have inst
 
 export IRODS_PATH=""          #path to the iRODS installation
 
-#export FLAVOR=""             #(optional) flavors of the Globus packages which are already installed 
-
 export DEST_LIB_DIR=""        #(optional) path to the folder in which the library will be copied
                               #such as ${GLOBUS_LOCATION}/lib64
 
@@ -19,3 +17,5 @@ export DEST_ETC_DIR=""        #(optional) path to the folder in which configurat
 
 #export IRODS_40_COMPAT=""    #(optional) Use compatible library locations for
                               #iRODS 4.0.x only (not needed for iRODS 4.1+).
+                              
+#export FLAVOR=""             #(optional) flavors of the Globus packages which are already installed 
