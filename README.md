@@ -52,7 +52,7 @@ Prerequisite:
 
 - libcurl4-openssl-dev
 
-It is possible to use the official iRODS and gridftp server packages without recompiling it.
+It is possible to use the official iRODS and gridftp server packages without recompiling them.
 
 
 1. Create a deployment folder:
