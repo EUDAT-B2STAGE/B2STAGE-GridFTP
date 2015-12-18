@@ -60,47 +60,30 @@ It is possible to use the official iRODS and gridftp server packages without rec
    mkdir /preferred_path/iRODS_DSI
    ```
     
-2. Set the following environment variables (it can be done editing and renaming 
-   the "setup.sh.template" file in "setup.sh" and source it):
-
-   - GLOBUS_LOCATION --> path to the Globus installation (if you have 
-   installed from packages, use '/usr')
-   - IRODS_PATH --> path to the iRODS installation (if you have installed 
-   from packages, use '/usr')
-   - FLAVOR --> (optional, usually not needed) flavors of the Globus packages 
-   which are      already installed [a] 
-   - DEST_LIB_DIR -->  `/preferred_path/iRODS_DSI`
-   - DEST_BIN_DIR --> `/preferred_path/iRODS_DSI`
-   - DEST_ETC_DIR -->  `/preferred_path/iRODS_DSI`
-   - IRODS_40_COMPAT --> (optional) Use iRODS 4.0.x compatible library 
-   file locations.  (Use for iRODS 4.0.x only, not needed for iRODS 4.1.+).
-
+2. In the B2STAGE-GridFTP source folder:
+   ```
+   cp setup.sh.template setup.sh
+   ```
+   and edit setup.sh changing the contents to:
+   ```
+   export GLOBUS_LOCATION="/usr" #path to the Globus installation
+   export IRODS_PATH="/usr"      #path to the iRODS installation 
+   export DEST_LIB_DIR="/preferred_path/iRODS_DSI"
+   export DEST_BIN_DIR="/preferred_path/iRODS_DSI"
+   export DEST_ETC_DIR="/preferred_path/iRODS_DSI"
+   ```
+   
    Note: comment out any variables not set (as leaving them set to a blank 
    value would prevent CMake from constructing correct default values for 
    variables that are optional).
 
-   [a] This depends on your globus installation. You will probably not need it. 
-       In case of error, possible flavors are:
-       
-       `FLAVOR=gcc64dbg`
-            
-       or
-       
-       `FLAVOR=gcc64dbgpthr`
-            
-       You can access this information with gpt-query. 
-       Anyway, if the flavor is not correct, the error returned when 
-       attempting to run the server should help.
-
-3. Run cmake:
+3. Compile the module running:
    ```
-   $cmake (path to CMakeFile.txt)
+   source setup.sh
+   cmake CMakeLists.txt
+   make install
    ```
-
-4. Compile the module:
-   ```
-   $ make
-   ```
+   
    An error like:
    ```
    ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
@@ -116,15 +99,10 @@ It is possible to use the official iRODS and gridftp server packages without rec
    
    b) Rebuild iRODS with `./irodssetup`
   
-5. `$ make install`
-        
-   Alternatively you can add the path to the library libglobus_gridftp_server_iRODS.so 
-   to the env variable $LD_LIBRARY_PATH in the same environment where you 
-   start the GridFTP server.
 
 
 
-Configuring and run
+Configuring the GridFTP server and run
 --------------------------------
 
 The GridFTP server can be run by an unprivileged user (root privileges are 
@@ -192,7 +170,7 @@ not required):
 
 6. Run the server with:
    ```
-   $ /etc/init.d/globus-gridftp-server start
+   /etc/init.d/globus-gridftp-server start
    ```
 
 
@@ -206,12 +184,12 @@ Additional configuration
    
    For instance: 
    ```
-   $globus-url-copy -list gsiftp://develvm01.pico.cineca.it:2811/11100/da3dae0a-6371-11e5-ba64-a41f13eb32b2/
+   globus-url-copy -list gsiftp://develvm01.pico.cineca.it:2811/11100/da3dae0a-6371-11e5-ba64-a41f13eb32b2/
    ```    
    will return the list of objects contained in the collection to which 
    the PID "11100/da3dae0a-6371-11e5-ba64-a41f13eb32b2/" points, or:
    ```
-   $globus-url-copy gsiftp://develvm01.pico.cineca.it:2811/11100/xa3dae0a-6371-11e5-ba64-a41f13eb32b1 /test.txt
+   globus-url-copy gsiftp://develvm01.pico.cineca.it:2811/11100/xa3dae0a-6371-11e5-ba64-a41f13eb32b1 /test.txt
    ```
     
    will download the object pointed by the PID "11100/xa3dae0a-6371-11e5-ba64-a41f13eb32b1".
