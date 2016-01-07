@@ -4,12 +4,12 @@ B2STAGE-GridFTP (iRODS-DSI)
 B2STAGE service core code for EUDAT project: DSI interface
 
 
-The GridFTP server provides high speed remote access to data stores. 
+GridFTP is a high-performance, secure, reliable data transfer protocol 
+which provides remote access to data stores. 
 There are many different types of data storage systems from standard file 
-systems to arrays of magnetic tape. 
-To allow GridFTP to be used with as many data storage systems as possible, 
-the GridFTP can be extended, implementing an interface called Data Storage 
-Interface (DSI).
+systems to arrays of magnetic tape: to allow GridFTP to be used with 
+as many data storage systems as possible, the GridFTP can be extended, 
+implementing an interface called Data Storage Interface (DSI).
 
 The GridFTP iRODS DSI consists of C based functions, which, through the 
 iRODS C API, can interact with iRODS. The main supported operations 
