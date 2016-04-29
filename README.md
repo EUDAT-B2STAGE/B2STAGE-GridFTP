@@ -114,13 +114,14 @@ not required):
 
    ```
    {
-       "irods_host" : "irods4",
+       "irods_host" : "irods4", 
        "irods_port" : 1247,
        "irods_user_name" : "rods",
        "irods_zone_name" : "tempZone",
        "irods_default_resource" : "demoResc"
    }
    ```
+   Note that the *"irods_host"* and *"irods_port"* identify the iRODS server that the DSI will contact during each request.
    
 2. As the user who runs the GridFTP server, try an `ils` icommand to verify that 
    the information set in the *irods_environment.json* are fine. If needed, perform 
