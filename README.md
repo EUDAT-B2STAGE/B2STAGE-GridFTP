@@ -263,7 +263,7 @@ Additional configuration
    already created as '/preferred_path/iRODS_DSI/gridmap_iRODS_callout.conf'.
  
    ```
-   $GSI_AUTHZ_CONF /etc/grid-security/gridmap_iRODS_callout.conf
+   $GSI_AUTHZ_CONF /preferred_path/iRODS_DSI/gridmap_iRODS_callout.conf
    ```
         
    Note that in order for this module to work, the server certificate DN 
