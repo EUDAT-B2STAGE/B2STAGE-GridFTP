@@ -11,8 +11,8 @@ systems to arrays of magnetic tape: to allow GridFTP to be used with
 as many data storage systems as possible, the GridFTP can be extended, 
 implementing an interface called Data Storage Interface (DSI).
 
-The GridFTP iRODS DSI consists of C based functions, which, through the 
-iRODS C API, can interact with iRODS. The main supported operations 
+The GridFTP iRODS DSI consists of C functions which can interact with 
+iRODS through the iRODS C API. The main supported operations 
 are get, put, delete and list.
 
 ![Alt text](/images/iRODS-DSI.png?raw=true "iRODS-DSI")
@@ -27,12 +27,12 @@ any GridFTP client passing to it a valid iRODS path; for instance:
 will list the content of the */tempZone/home/myuser/* iRODS collection.
 
 The module can be loaded by the GridFTP server at start-up time through 
-a specific command line option, therefore no changes are required in the
-GridFTP server typical configuration, which makes easier the maintenance 
-of the module being decoupled from future changes of the server.
+a specific command line option. Therefore, no changes are required in the
+GridFTP server configuration. The decoupling from the possible future changes of the server
+simplifies the maintenance of the osftware module.
 
-
-
+Please note, that once the iRODS-DSI is installed you will not be able to manage data located 
+on the normal file system with this gridFTP instance any longer.
 
 
 Building iRODS DSI with CMake
@@ -57,27 +57,43 @@ It is possible to use the official iRODS and gridftp server packages without rec
 
 1. Create a deployment folder:
    ```
-   mkdir /preferred_path/iRODS_DSI
+   mkdir /<preferred_path>/iRODS_DSI
    ```
+
+2. iRODS packages and code
+    ```sh
+    mkdir -p ~/iRODS_DSI
+    cd ~/iRODS_DSI
+    wget ftp://ftp.renci.org/pub/irods/releases/4.1.8/ubuntu14/irods-dev-4.1.8-ubuntu14-x86_64.deb
+    sudo dpkg -i irods-dev-4.1.8-ubuntu14-x86_64.deb
+    wget ftp://ftp.renci.org/pub/irods/releases/4.1.8/ubuntu14/irods-runtime-4.1.8-ubuntu14-x86_64.deb
+    sudo dpkg -i irods-runtime-4.1.8-ubuntu14-x86_64.deb
+    sudo apt-get update
+    ```
+
+3. Clone this repository
+    ```sh
+    git clone https://github.com/EUDAT-B2STAGE/B2STAGE-GridFTP.git
+    ```
     
-2. In the B2STAGE-GridFTP source folder:
+4. In the B2STAGE-GridFTP source folder:
    ```
    cp setup.sh.template setup.sh
    ```
-   and edit setup.sh changing the contents to:
+   and edit the *setup.sh* changing the contents to:
    ```
    export GLOBUS_LOCATION="/usr" #path to the Globus installation
    export IRODS_PATH="/usr"      #path to the iRODS installation 
-   export DEST_LIB_DIR="/preferred_path/iRODS_DSI"
-   export DEST_BIN_DIR="/preferred_path/iRODS_DSI"
-   export DEST_ETC_DIR="/preferred_path/iRODS_DSI"
+   export DEST_LIB_DIR="/<preferred_path>/iRODS_DSI"
+   export DEST_BIN_DIR="/<preferred_path>/iRODS_DSI"
+   export DEST_ETC_DIR="/<preferred_path>/iRODS_DSI"
    ```
    
    Note: comment out any variables not set (as leaving them set to a blank 
    value would prevent CMake from constructing correct default values for 
    variables that are optional).
 
-3. Compile the module running:
+5. Compile the module running:
    ```
    source setup.sh
    cmake CMakeLists.txt
@@ -121,16 +137,16 @@ not required):
        "irods_default_resource" : "demoResc"
    }
    ```
-   Note that the *"irods_host"* and *"irods_port"* identify the iRODS server that the DSI will contact during each request.
+   Note that the *"irods_host"* and *"irods_port"* identify the iRODS server that the DSI will contact during each request. Be sure to set the *irods_default_resource*, this variable is not set when you create the file with *iinit* or when you copy it over from another user.
    
 2. As the user who runs the GridFTP server, try an `ils` icommand to verify that 
    the information set in the *irods_environment.json* are fine. If needed, perform 
    an `iinit` to authenticate the iRODS user. 
 
-2. Add the following lines to the GridFTP configuration file ( tipically 
-   *$GLOBUS_LOCATION/etc/gridftp.conf* ):
+3. Add the following lines to the GridFTP configuration file (typically 
+   *$GLOBUS_LOCATION/etc/gridftp.conf*):
    ```
-   $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/preferred_path/iRODS_DSI"
+   $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/preferred_path/iRODS_DSI/B2STAGE-GridFTP/"
    $irodsConnectAsAdmin "rods"
    load_dsi_module iRODS 
    auth_level 4
@@ -141,17 +157,18 @@ not required):
    $HOME /path/to/user/home
    ```
 
-4. When deploying with iRODS 4, it is necessary to preload the DSI library 
+4. When deploying the DSI with iRODS 4, it is necessary to preload the DSI library 
    into the GridFTP server binary, so that the symbols exported by the library 
-   are visible.  Otherwise, when iRODS 4 tries to load the plugins (including 
+   are visible. Otherwise, when iRODS 4 tries to load the plugins (including 
    basic network and authentication plugins), the plugins would fail to load 
    (as the plugins are not explicitly declaring a dependency on the runtime symbols).
 
-   Also, it is necessary to load the GridFTP server library alongside the DSI library 
+   It is also necessary to load the GridFTP server library alongside the DSI library 
    (which depends on symbols provided by the GridFTP server library). Otherwise, 
    any command invocation in that environment fails with unresolved symbol errors.
    
-   To do so, add the following lines at the beginning of the *globus-gridftp-server* file:
+   To do so, add the following lines at the beginning of the *globus-gridftp-server* 
+   (usually */etc/init.d/globus-gridftp-server*) file:
 
    ```
    LD_PRELOAD="$LD_PRELOAD:/path/to/libglobus_gridftp_server.so:/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
@@ -160,18 +177,18 @@ not required):
    
    The libglobus_gridftp_server.so is usually placed in */usr/lib64/* or */usr/lib/x86_64-linux-gnu/*.
    
-5. In order for GridFTP CKSM (checksum) command to interoperate with Globus.org, 
+5. To enable the GridFTP CKSM (checksum) command to interoperate with Globus.org, 
    it is necessary to configure iRODS to use MD5 checksums 
-   (iRODS 4 otherwise defaults to SHA-256). Edit `/etc/irods/server.config` 
+   (iRODS 4 otherwise defaults to SHA-256). Edit */etc/irods/server_config.json* 
    and set:
 
    ``` 
-   default_hash_scheme MD5
+   "default_hash_scheme": "MD5",
    ```
 
 6. Run the server with:
    ```
-   /etc/init.d/globus-gridftp-server start
+   /etc/init.d/globus-gridftp-server restart
    ```
 
 
@@ -195,18 +212,19 @@ Additional configuration
     
    will download the object pointed by the PID "11100/xa3dae0a-6371-11e5-ba64-a41f13eb32b1".
     
-   If the PID resolution fails (either because the Handle server can not 
-   resolve it or because the path passed as input is not a PID) the DSI 
+   If the PID resolution fails (either because the Handle server cannot 
+   resolve the PID or because the path passed as input is not a PID) the DSI 
    will try to perform the requested operation anyway, using the original 
    input path. This guarantees that the DSI can accept both PIDs and 
    standard iRODS paths.
     
-   To enable the PID resolution add the following line to the GridFTP 
-   configuration file ( tipically *$GLOBUS_LOCATION/etc/gridftp.conf* ):
+   To enable the PID resolution export the address of your handle-resolver to the GridFTP 
+   configuration file (typically *$GLOBUS_LOCATION/etc/gridftp.conf*):
    ```
    $pidHandleServer "http://hdl.handle.net/api/handles"
    ```
-    
+   If you are using a different resolver than the global handle resolver, replace *hdl.handle.net* with the correct address.
+
    Note: Once the PID is correclty resolved, the requested operation 
    (listing or downloading) will be correctly performed only if the URI 
    returned by the Handle server is a valid iRODS path pointing to the 
