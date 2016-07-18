@@ -55,15 +55,9 @@ Prerequisite:
 It is possible to use the official iRODS and gridftp server packages without recompiling them.
 
 
-1. Create a deployment folder:
-   ```
-   mkdir /<preferred_path>/iRODS_DSI
-   ```
 
-2. iRODS packages and code
+1. Install iRODS packages
     ```sh
-    mkdir -p ~/iRODS_DSI
-    cd ~/iRODS_DSI
     wget ftp://ftp.renci.org/pub/irods/releases/4.1.8/ubuntu14/irods-dev-4.1.8-ubuntu14-x86_64.deb
     sudo dpkg -i irods-dev-4.1.8-ubuntu14-x86_64.deb
     wget ftp://ftp.renci.org/pub/irods/releases/4.1.8/ubuntu14/irods-runtime-4.1.8-ubuntu14-x86_64.deb
@@ -71,11 +65,16 @@ It is possible to use the official iRODS and gridftp server packages without rec
     sudo apt-get update
     ```
 
-3. Clone this repository
+2. Clone this repository
     ```sh
     git clone https://github.com/EUDAT-B2STAGE/B2STAGE-GridFTP.git
     ```
     
+3. Create a deployment folder:
+   ```sh
+   mkdir /<preferred_path>/iRODS_DSI
+   ``` 
+ 
 4. In the B2STAGE-GridFTP source folder:
    ```
    cp setup.sh.template setup.sh
@@ -99,22 +98,6 @@ It is possible to use the official iRODS and gridftp server packages without rec
    cmake CMakeLists.txt
    make install
    ```
-   
-   An error like:
-   ```
-   ${IRODS_PATH}/lib/core/obj/libRodsAPIs.a(clientLogin.o):
-   relocation R_X86_64_32 against `.bss` can not be used when making 
-   a shared object; recompile with -fPIC
-   ```
-   usually happens on x86_64 systems. In order to solve it, recompile iRODS 
-   with the mentioned flag, -fPIC:
-   
-   a) Edit iRODS/config/irods.config and add:
-   
-      `$CCFLAGS = '-fPIC';`
-   
-   b) Rebuild iRODS with `./irodssetup`
-  
 
 
 
@@ -146,7 +129,7 @@ not required):
 3. Add the following lines to the GridFTP configuration file (typically 
    *$GLOBUS_LOCATION/etc/gridftp.conf*):
    ```
-   $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/preferred_path/iRODS_DSI/B2STAGE-GridFTP/"
+   $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/<preferred_path>/iRODS_DSI/"
    $irodsConnectAsAdmin "rods"
    load_dsi_module iRODS 
    auth_level 4
@@ -171,7 +154,7 @@ not required):
    (usually */etc/init.d/globus-gridftp-server*) file:
 
    ```
-   LD_PRELOAD="$LD_PRELOAD:/path/to/libglobus_gridftp_server.so:/preferred_path/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
+   LD_PRELOAD="$LD_PRELOAD:/path/to/libglobus_gridftp_server.so:/<preferred_path>/iRODS_DSI/libglobus_gridftp_server_iRODS.so"
    export LD_PRELOAD
    ```
    
