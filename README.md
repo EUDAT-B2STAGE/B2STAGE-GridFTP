@@ -29,7 +29,7 @@ will list the content of the */tempZone/home/myuser/* iRODS collection.
 The module can be loaded by the GridFTP server at start-up time through 
 a specific command line option. Therefore, no changes are required in the
 GridFTP server configuration. The decoupling from the possible future changes of the server
-simplifies the maintenance of the osftware module.
+simplifies the maintenance of the software module.
 
 Please note, that once the iRODS-DSI is installed you will not be able to manage data located 
 on the normal file system with this gridFTP instance any longer.
@@ -208,7 +208,7 @@ Additional configuration
    ```
    If you are using a different resolver than the global handle resolver, replace *hdl.handle.net* with the correct address.
 
-   Note: Once the PID is correclty resolved, the requested operation 
+   Note: Once the PID is correctly resolved, the requested operation 
    (listing or downloading) will be correctly performed only if the URI 
    returned by the Handle server is a valid iRODS path pointing to the 
    iRODS instance to which the DSI is connected to.
@@ -239,7 +239,7 @@ Additional configuration
    ```
 
    The irodsResourceMap variable must point to a file which specifies which 
-   iRODS resource has to be used when uplaoding or downloading a file in a 
+   iRODS resource has to be used when uploading or downloading a file in a 
    particular iRODS path.
    For example:
    
