@@ -38,7 +38,34 @@ if (DEFINED ENV{IRODS_PATH})
     if ($ENV{IRODS_PATH} STREQUAL "/usr")
         add_definitions(-DIRODS_HEADER_HPP)
         set(irods_include_path_list "$ENV{IRODS_PATH}/include/irods")
-        if (DEFINED ENV{IRODS_40_COMPAT})
+        if (DEFINED ENV{IRODS_42_COMPAT})
+            set(CMAKE_INSTALL_RPATH $ENV{IRODS_EXTERNALS_PATH}/clang-runtime3.8-0/lib)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++")
+            add_compile_options(-nostdinc++)
+
+            set(CMAKE_C_COMPILER $ENV{IRODS_EXTERNALS_PATH}/clang3.8-0/bin/clang)
+            set(CMAKE_CXX_COMPILER $ENV{IRODS_EXTERNALS_PATH}/clang3.8-0/bin/clang++)
+            link_libraries(c++abi)
+
+            remove_definitions(-DIRODS_HEADER_HPP)
+            add_definitions(-DIRODS_42)
+            if (DEFINED ENV{IRODS_EXTERNALS_PATH})
+                set(irods_link_obj_path
+                    "$ENV{IRODS_PATH}/lib/libirods_client.so"
+                    "$ENV{IRODS_PATH}/lib/libirods_common.so"
+                    "-lrt"
+                    "-lcurl"
+                    "$ENV{IRODS_EXTERNALS_PATH}/jansson2.7-0/lib/libjansson.a"
+                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_filesystem.so"
+                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_regex.so"
+                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_system.a"
+                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_thread.so")
+            else()
+                message( FATAL_ERROR "IRODS_EXTERNALS_PATH is NOT defined, CMake will exit." )
+            endif()
+        elseif (DEFINED ENV{IRODS_40_COMPAT})
             set(irods_link_obj_path 
                     "$ENV{IRODS_PATH}/lib/irods/libirods_client.so"
                     "$ENV{IRODS_PATH}/lib/irods/libirods_client_api.so"

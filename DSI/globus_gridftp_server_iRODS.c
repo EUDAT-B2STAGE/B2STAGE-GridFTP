@@ -693,7 +693,7 @@ globus_l_gfs_iRODS_start(
         result = GlobusGFSErrorGeneric(err_str); 
         goto connect_error;
     }
-#ifdef IRODS_HEADER_HPP
+#ifdef IRODS_42
     status = clientLogin(iRODS_handle->conn, NULL, NULL);
 #else
     status = clientLogin(iRODS_handle->conn);
@@ -1134,7 +1134,8 @@ globus_l_gfs_iRODS_recv(
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
     };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
-    if (iRODS_handle->fd >= 0) {
+
+    if (iRODS_handle->fd > 0) {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: Open existing object: %s.\n", collection);
     }  
     else
