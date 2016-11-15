@@ -129,7 +129,6 @@ not required):
 3. Add the following lines to the GridFTP configuration file (typically 
    *$GLOBUS_LOCATION/etc/gridftp.conf*):
    ```
-   $LD_LIBRARY_PATH "$LD_LIBRARY_PATH:/<preferred_path>/iRODS_DSI/"
    $irodsConnectAsAdmin "rods"
    load_dsi_module iRODS 
    auth_level 4
@@ -140,7 +139,13 @@ not required):
    $HOME /path/to/user/home
    ```
 
-4. When deploying the DSI with iRODS 4, it is necessary to preload the DSI library 
+4. Add the following line at the beginning of the *globus-gridftp-server* 
+   (usually */etc/init.d/globus-gridftp-server*) file:
+   ```
+   export $LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/<preferred_path>/iRODS_DSI/"
+   ```
+
+5. When deploying the DSI with iRODS 4, it is necessary to preload the DSI library 
    into the GridFTP server binary, so that the symbols exported by the library 
    are visible. Otherwise, when iRODS 4 tries to load the plugins (including 
    basic network and authentication plugins), the plugins would fail to load 
@@ -160,7 +165,7 @@ not required):
    
    The libglobus_gridftp_server.so is usually placed in */usr/lib64/* or */usr/lib/x86_64-linux-gnu/*.
    
-5. To enable the GridFTP CKSM (checksum) command to interoperate with Globus.org, 
+6. To enable the GridFTP CKSM (checksum) command to interoperate with Globus.org, 
    it is necessary to configure iRODS to use MD5 checksums 
    (iRODS 4 otherwise defaults to SHA-256). Edit */etc/irods/server_config.json* 
    and set:
@@ -169,7 +174,7 @@ not required):
    "default_hash_scheme": "MD5",
    ```
 
-6. Run the server with:
+7. Run the server with:
    ```
    /etc/init.d/globus-gridftp-server restart
    ```
