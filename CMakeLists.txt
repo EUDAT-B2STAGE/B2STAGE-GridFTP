@@ -32,6 +32,7 @@ else()
     message( FATAL_ERROR "GLOBUS_LOCATION is NOT defined, CMake will exit." )
 endif()
 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if (DEFINED ENV{IRODS_PATH})
     message("IRODS_PATH is defined as $ENV{IRODS_PATH}")
@@ -43,7 +44,7 @@ if (DEFINED ENV{IRODS_PATH})
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
             set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++")
             set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++")
-            add_compile_options(-nostdinc++)
+            add_compile_options(-nostdinc++ -O0)
 
             set(CMAKE_C_COMPILER $ENV{IRODS_EXTERNALS_PATH}/clang3.8-0/bin/clang)
             set(CMAKE_CXX_COMPILER $ENV{IRODS_EXTERNALS_PATH}/clang3.8-0/bin/clang++)
@@ -52,15 +53,25 @@ if (DEFINED ENV{IRODS_PATH})
             remove_definitions(-DIRODS_HEADER_HPP)
             add_definitions(-DIRODS_42)
             if (DEFINED ENV{IRODS_EXTERNALS_PATH})
+                set(irods_include_path_list "$ENV{IRODS_PATH}/include/irods"
+                                    "$ENV{IRODS_EXTERNALS_PATH}/clang3.8-0/include/c++/v1")
+
                 set(irods_link_obj_path
-                    "$ENV{IRODS_PATH}/lib/libirods_client.so"
-                    "$ENV{IRODS_PATH}/lib/libirods_common.so"
+                    PRIVATE
+                    irods_client
+                    irods_plugin_dependencies
+                    irods_common
+                    "$ENV{IRODS_PATH}/lib/irods/plugins/network/libtcp_client.so"
+                    "$ENV{IRODS_PATH}/lib/irods/plugins/auth/libnative_client.so" 
+                    #"$ENV{IRODS_PATH}/lib/libirods_client.so"
+                    #"$ENV{IRODS_PATH}/lib/libirods_common.so"
                     "-lrt"
-                    "-lcurl"
-                    "$ENV{IRODS_EXTERNALS_PATH}/jansson2.7-0/lib/libjansson.a"
+                    #"-lcurl"
+                    "$ENV{IRODS_EXTERNALS_PATH}/avro1.7.7-0/lib/libavrocpp.so"
+                    "$ENV{IRODS_EXTERNALS_PATH}/jansson2.7-0/lib/libjansson.so"
                     "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_filesystem.so"
                     "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_regex.so"
-                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_system.a"
+                    "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_system.so"
                     "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_thread.so")
             else()
                 message( FATAL_ERROR "IRODS_EXTERNALS_PATH is NOT defined, CMake will exit." )
@@ -174,7 +185,7 @@ set(testpidmanager_exe "testpidmanager")
 add_executable(${testpidmanager_exe} DSI/pid_manager_test.c DSI/pid_manager.c external/cJSON.c)
 target_link_libraries(${testpidmanager_exe} ${irods_link_obj_path} "-lm -lglobus_gridftp_server")
 
-set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++ -lcurl")
+set(CMAKE_C_FLAGS "-g -O2 -Wall -lstdc++ -lcurl -O3 -DNDEBUG")
 
 include_directories(${irods_include_path_list})
 include_directories($ENV{GLOBUS_LOCATION}/include/globus
