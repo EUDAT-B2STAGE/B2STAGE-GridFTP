@@ -1144,6 +1144,8 @@ globus_l_gfs_iRODS_recv(
         bzero (&dataObjWriteInp, sizeof (dataObjWriteInp));
         rstrcpy (dataObjInp.objPath, collection, MAX_NAME_LEN);
         dataObjInp.dataSize = 0;
+        // set operation type to PUT, otherwise acPostProcForPut rules will not fire through GridFTP uploads.
+        dataObjInp.oprType = PUT_OPR;
         addKeyVal (&dataObjInp.condInput, FORCE_FLAG_KW, "");
         // give priority to explicit resource mapping, otherwise use default resource if set
         if (iRODS_Resource_struct.resource != NULL)
