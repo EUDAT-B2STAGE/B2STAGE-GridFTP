@@ -687,8 +687,8 @@ globus_l_gfs_iRODS_start(
     if (getenv(IRODS_CONNECT_AS_ADMIN)!=NULL) {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS_handle->hostname = [%s] iRODS_handle->port = [%i] myRodsEnv.rodsUserName = [%s] myRodsEnv.rodsZone = [%s] iRODS_handle->user = [%s] iRODS_handle->zone = [%s]\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
-        //iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
-        iRODS_handle->conn = _rcConnect("localhost", 1247, "rods", "tempZone", "rods", "tempZone", &errMsg, 0, 0);
+        iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
+        //iRODS_handle->conn = _rcConnect("localhost", 1247, "rods", "tempZone", "rods", "tempZone", &errMsg, 0, 0);
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: _rcConnect returned %i", 0);
     } else {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
