@@ -35,6 +35,7 @@
 #include <stdio.h> 
 #include <time.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #define MAX_DATA_SIZE 1024
 
@@ -568,7 +569,7 @@ globus_l_gfs_iRODS_make_error(
     int                                 status)
 {
     char *errorSubName;
-    char *errorName;    
+    const char *errorName;    
     char *                              err_str;
     globus_result_t                     result;
     GlobusGFSName(globus_l_gfs_iRODS_make_error);
@@ -607,6 +608,7 @@ globus_l_gfs_iRODS_start(
     globus_gfs_operation_t              op,
     globus_gfs_session_info_t *         session_info)
 {
+
     globus_l_gfs_iRODS_handle_t *       iRODS_handle;
     globus_result_t                           result;
     globus_gfs_finished_info_t          finished_info;
@@ -650,7 +652,9 @@ globus_l_gfs_iRODS_start(
     // copy also the default resource if it is set
     if (strlen(myRodsEnv.rodsDefResource) > 0 ) {
         iRODS_handle->defResource = strdup(myRodsEnv.rodsDefResource);
-    };
+    } else {
+        iRODS_handle->defResource = NULL;
+    }
     iRODS_handle->user = iRODS_getUserName(session_info->subject); //iRODS usernmae
     user_name = strdup(session_info->username); //Globus user name
     
@@ -681,8 +685,11 @@ globus_l_gfs_iRODS_start(
     free(username_to_parse);
 
     if (getenv(IRODS_CONNECT_AS_ADMIN)!=NULL) {
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS_handle->hostname = [%s] iRODS_handle->port = [%i] myRodsEnv.rodsUserName = [%s] myRodsEnv.rodsZone = [%s] iRODS_handle->user = [%s] iRODS_handle->zone = [%s]\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling _rcConnect(%s,%i,%s,%s, %s, %s)\n", iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone);
         iRODS_handle->conn = _rcConnect(iRODS_handle->hostname, iRODS_handle->port, myRodsEnv.rodsUserName, myRodsEnv.rodsZone, iRODS_handle->user, iRODS_handle->zone, &errMsg, 0, 0);
+        //iRODS_handle->conn = _rcConnect("localhost", 1247, "rods", "tempZone", "rods", "tempZone", &errMsg, 0, 0);
+        globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: _rcConnect returned %i", 0);
     } else {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO, "iRODS DSI: calling rcConnect(%s,%i,%s,%s)\n", iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone);
         iRODS_handle->conn = rcConnect(iRODS_handle->hostname, iRODS_handle->port, iRODS_handle->user, iRODS_handle->zone, 0, &errMsg);
@@ -693,7 +700,7 @@ globus_l_gfs_iRODS_start(
         result = GlobusGFSErrorGeneric(err_str); 
         goto connect_error;
     }
-#ifdef IRODS_HEADER_HPP
+#ifdef IRODS_42
     status = clientLogin(iRODS_handle->conn, NULL, NULL);
 #else
     status = clientLogin(iRODS_handle->conn);
@@ -1134,7 +1141,8 @@ globus_l_gfs_iRODS_recv(
         addKeyVal (&dataObjInp.condInput, RESC_NAME_KW, iRODS_handle->defResource);
     };
     iRODS_handle->fd = rcDataObjOpen (iRODS_handle->conn, &dataObjInp);
-    if (iRODS_handle->fd >= 0) {
+
+    if (iRODS_handle->fd > 0) {
         globus_gfs_log_message(GLOBUS_GFS_LOG_INFO,"iRODS DSI: Open existing object: %s.\n", collection);
     }  
     else

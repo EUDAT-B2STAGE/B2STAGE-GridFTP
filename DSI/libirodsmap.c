@@ -40,7 +40,7 @@ int libirodsmap_connect(rcComm_t ** rcComm_out) {
     };
     libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: connected to iRODS server (%s:%d)\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
 
-#ifdef IRODS_HEADER_HPP
+#ifdef IRODS_42
     rc = clientLogin(rcComm, NULL, NULL);
 #else
     rc = clientLogin(rcComm);
