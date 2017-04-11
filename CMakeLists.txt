@@ -69,7 +69,7 @@ if (DEFINED ENV{IRODS_PATH})
                     #"$ENV{IRODS_PATH}/lib/libirods_client.so"
                     #"$ENV{IRODS_PATH}/lib/libirods_common.so"
                     "-lrt"
-                    #"-lcurl"
+                    "-lcurl"
                     "$ENV{IRODS_EXTERNALS_PATH}/avro1.7.7-0/lib/libavrocpp.so"
                     "$ENV{IRODS_EXTERNALS_PATH}/jansson2.7-0/lib/libjansson.so"
                     "$ENV{IRODS_EXTERNALS_PATH}/boost1.60.0-0/lib/libboost_filesystem.so"
