@@ -36,12 +36,8 @@ will list the content of the */tempZone/home/myuser/* iRODS collection.
 
 The module can be loaded by the GridFTP server at start-up time through a specific command line option. Therefore, no changes are required in the GridFTP server installation. The decoupling from the possible future changes to the server simplifies the maintenance of the software module.
 
-
-Building iRODS DSI with CMake
+Prerequisites
 --------------------------------
-
-**Prerequisites:**
-
 - CMake 2.7 or higher
 
 - iRODS with the Development Tools and Runtime Libraries packages: follow the instructions at https://packages.irods.org/ to add the iRODS repository to your package manager. Installation instructions can be found at https://irods.org/download/
@@ -60,6 +56,7 @@ Building iRODS DSI with CMake
  ```
 
 - Globus and other packages:
+
  Ubuntu:
  ```
  sudo apt-get install -y globus-gridftp-server-progs globus-simple-ca globus-gass-copy-progs libglobus-gss-assist-dev
@@ -82,8 +79,10 @@ Building iRODS DSI with CMake
  sudo yum install -y globus-gsi-cert-utils-progs
  sudo yum install -y globus-proxy-utils
  ```
- 
-----------
+
+
+Building iRODS DSI with CMake
+--------------------------------
 
 1. Clone this repository
  ```
@@ -246,7 +245,6 @@ Additional configuration
  ```
  $GSI_AUTHZ_CONF /preferred_path/iRODS_DSI/gridmap_iRODS_callout.conf
  ```
-        
  Note that in order for this module to work, the server certificate DN must be authorized to connect as a rodsAdmin user (e.g., the 'rods' user).
 
 
@@ -298,5 +296,6 @@ Licence
  Globus gridmap iRODS callout to map subject DNs to iRODS accounts.
  
  Author: Vladimir Mencl, University of Canterbury
- Email:  vladimir.mencl@canterbury.ac.nz
-$ globus-url-copy -list gsiftp://develvm.cluster.cineca.it:2811/tempZone/home/myuser/`
+ Email:  vladimir.mencl@canterbury.ac.n
+
+
