@@ -42,18 +42,18 @@ Prerequisites
 
 - iRODS with the Development Tools and Runtime Libraries packages: follow the instructions at https://packages.irods.org/ to add the iRODS repository to your package manager. Installation instructions can be found at https://irods.org/download/
 
-- For 4.2, the iRODS external packages need to be installed. These provide a consistent build environment (cmake, clang, etc.) to build the GridFTP plugin.
+- For 4.2, the iRODS external packages need to be installed. These provide a consistent build environment (cmake, clang, etc.) to build the GridFTP plugin:
 
- Ubuntu:
+	Ubuntu:
 
- ```
- sudo apt-get install 'irods-externals*
- ```
+	```
+	sudo apt-get install 'irods-externals*
+	```
 
- Centos:
- ```
- sudo yum install 'irods-externals*
- ```
+	Centos:
+	```
+	sudo yum install 'irods-externals*
+	```
 
 - Globus and other packages:
 
