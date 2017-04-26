@@ -43,7 +43,7 @@ Prerequisites
 
 	Ubuntu:
 	```
-	sudo apt-get install -y globus-gridftp-server-progs globus-simple-ca globus-gass-copy-progs libglobus-gss-assist-dev
+	sudo apt-get install -y globus-gridftp-server-progs globus-gass-copy-progs libglobus-gss-assist-dev
 	sudo apt-get install -y libglobus-common-dev libglobus-gridftp-server-dev libglobus-gridmap-callout-error-dev
 	sudo apt-get install -y libcurl4-openssl-dev
 	sudo apt-get install -y git
@@ -55,7 +55,7 @@ Prerequisites
 	```
 	Centos:
 	```
-	sudo yum install -y globus-gridftp-server-progs globus-simple-ca globus-gass-copy-progs libglobus-gss-assist-dev
+	sudo yum install -y globus-gridftp-server-progs globus-gass-copy-progs libglobus-gss-assist-dev
 	sudo yum install -y globus-common-devel globus-gridftp-server-devel   globus-gridmap-callout-error-devel
 	sudo yum install -y libcurl-devel
 	sudo yum install -y git
