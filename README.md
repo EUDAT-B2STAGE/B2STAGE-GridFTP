@@ -137,7 +137,7 @@ Configuring the GridFTP server and run
 
 4. Add the following line at the beginning of the *globus-gridftp-server* (usually */etc/init.d/globus-gridftp-server*) file:
 	```
-	export $LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/<preferred_path>/iRODS_DSI/"
+	export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/<preferred_path>/iRODS_DSI/"
 	```
 
 5. When deploying the DSI with iRODS 4.1, it is necessary to load the GridFTP server library alongside the DSI library by adding the following lines at the beginning of the *globus-gridftp-server*  (usually */etc/init.d/globus-gridftp-server*) file:
