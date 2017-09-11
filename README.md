@@ -22,7 +22,7 @@ The module can be loaded by the GridFTP server at start-up time through a specif
 
 Prerequisites
 --------------------------------
-- CMake 2.7 or higher
+- CMake 2.7 or higher (part of irods-externals in iRODS 4.2.X)
 
 - iRODS with the Development Tools and Runtime Libraries packages: follow the instructions at https://packages.irods.org/ to add the iRODS repository to your package manager. Installation instructions can be found at https://irods.org/download/
 
@@ -36,7 +36,8 @@ Prerequisites
 
 	Centos:
 	```
-	sudo yum install 'irods-externals*
+	sudo yum -y install irods-devel
+	sudo yum install irods-externals-clang3.8-0.x86_64
 	```
 
 - Globus and other packages:
@@ -55,11 +56,11 @@ Prerequisites
 	```
 	Centos:
 	```
-	sudo yum install -y globus-gridftp-server-progs globus-gass-copy-progs libglobus-gss-assist-dev
+	sudo yum install -y globus-gridftp-server-progs globus-gass-copy-progs
 	sudo yum install -y globus-common-devel globus-gridftp-server-devel   globus-gridmap-callout-error-devel
 	sudo yum install -y libcurl-devel
 	sudo yum install -y git
-	sudo yum install -y g++
+	sudo yum install -y gcc-c++
 	sudo yum install -y globus-gsi-cert-utils-progs
 	sudo yum install -y globus-proxy-utils
 	```
@@ -91,6 +92,10 @@ Building iRODS DSI with CMake
 	In Ubuntu you may need to set up C_INCLUDE_PATH so that the globus_config.h header can be found.
 	```
 	export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu/globus
+	```
+	or
+	```
+	export C_INCLUDE_PATH=/usr/include/globus
 	```
 
 	If you are building for iRODS 4.2, set the IRODS_42_COMPAT environment variable to true.
