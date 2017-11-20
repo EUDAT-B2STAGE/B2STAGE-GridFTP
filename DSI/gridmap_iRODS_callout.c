@@ -35,6 +35,7 @@
 
 #define IRODS_PREMAP_SCRIPT "IRODS_PREMAP_SCRIPT"
 
+
 /* Get the subject from the globus context */
 globus_result_t
 gridmap_iRODS_callout_get_subject(
