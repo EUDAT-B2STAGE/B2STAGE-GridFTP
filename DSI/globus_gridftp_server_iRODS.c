@@ -700,11 +700,8 @@ globus_l_gfs_iRODS_start(
         result = GlobusGFSErrorGeneric(err_str); 
         goto connect_error;
     }
-#ifdef IRODS_42
+
     status = clientLogin(iRODS_handle->conn, NULL, NULL);
-#else
-    status = clientLogin(iRODS_handle->conn);
-#endif
     if (status != 0) {
         result = globus_l_gfs_iRODS_make_error("\'clientLogin\' failed.", status);
         goto error;

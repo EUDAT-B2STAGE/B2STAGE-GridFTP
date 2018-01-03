@@ -40,11 +40,7 @@ int libirodsmap_connect(rcComm_t ** rcComm_out) {
     };
     libirodsmap_log(IRODSMAP_LOG_DEBUG, "libirodsmap_connect: connected to iRODS server (%s:%d)\n", myRodsEnv.rodsHost, myRodsEnv.rodsPort);
 
-#ifdef IRODS_42
     rc = clientLogin(rcComm, NULL, NULL);
-#else
-    rc = clientLogin(rcComm);
-#endif
     if (rc != 0) {
         libirodsmap_log(IRODSMAP_LOG_ERR,"libirodsmap_connect: clientLogin failed: %s%d\n", "", rc);
         goto connect_error;
