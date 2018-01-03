@@ -2,6 +2,11 @@
 ***** GridFTP iRODS DSI change log *****
 ****************************************
 
+Release 1.9 (2017-01-05):
+* Fixed Login for iRODS 4.1
+* Added Prace-Integration callout
+* Drop support for iRODS version < 4
+  
 Release 1.81 (2015-12-14):
 * Creating a new collection, the DSI makes parent collections as needed (equivalent to 
   "mkdir -p")
