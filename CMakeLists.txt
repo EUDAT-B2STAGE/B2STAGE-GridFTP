@@ -24,6 +24,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (iRODS_DSI C CXX)
 set(GENERIC_LIB_VERSION "1.8")
+set(IRODS_MIN_VERSION "4.2.0")
 
 ##### Check ENV variables ######
 if (DEFINED ENV{GLOBUS_LOCATION})
@@ -40,8 +41,8 @@ if (DEFINED ENV{IRODS_PATH})
         add_definitions(-DIRODS_HEADER_HPP)
         set(irods_include_path_list "$ENV{IRODS_PATH}/include/irods")
         if (DEFINED ENV{IRODS_42_COMPAT})
-
-            find_package(IRODS 4.2.0 EXACT REQUIRED CONFIG)
+            #find_package(IRODS ${IRODS_MIN_VERSION} REQUIRED CONFIG)
+            find_package(IRODS REQUIRED CONFIG)
 
             set(CMAKE_INSTALL_RPATH $ENV{IRODS_EXTERNALS_PATH}/clang-runtime3.8-0/lib)
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
