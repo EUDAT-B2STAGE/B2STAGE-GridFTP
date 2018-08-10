@@ -1,6 +1,8 @@
 ****************************************
 ***** GridFTP iRODS DSI change log *****
 ****************************************
+Release 1.91 (2018-08-10):
+* Added support for iRODS 4.2.3
 
 Release 1.9 (2017-01-05):
 * Fixed Login for iRODS 4.1
